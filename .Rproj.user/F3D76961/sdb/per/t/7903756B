@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"R Notebook\"\noutput:\n  html_document: \n    number_sections: no\n    theme: journal\n---\n\nThis is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. \n\nTry executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. \n\n```{r setup, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=6, fig.height=6, fig.align='center'}\nknitr::opts_chunk$set(echo = TRUE)\nrm(list = ls())\n\nsubjects <- c(\"sub0028\", \"sub0030\", \"sub0036\", \"sub0056\", \"sub0058\", \"sub0127\", \"sub0147\", \"sub0153\", \"sub0156\", \"sub0177\", \"sub0179\", \"sub0186\", \"sub0189\", \"sub0203\", \"sub0206\")\n\nrecan_status <- c(\"N\", \"N\", \"N\", \"Y\", \"N\", \"N\", \"Y\", \"N\", \"Y\", \"N\", \"Y\", \"Y\", \"Y\", \"N\", \"N\")\n\nfor (i in subjects) # loop through subjects \n{\n  text_filenames <- c(\"Tmax_BL\", \"Tmax_CL\", \"Tmax_D0D1IG\", \"Tmax_D1D5IG\", \"Tmax_D0D5IG\", \"Tmax_VT\", \"TSA_VS_BL\", \"TSA_VS_CL\", \"TSA_VS_D1IG\", \"TSA_VS_D1D5IG\", \"TSA_VS_D0D5IG\", \"TSA_VS_VT\", \"TSA_HH_BL\", \"TSA_HH_CL\", \"TSA_HH_D1IG\", \"TSA_HH_D1D5IG\", \"TSA_HH_D0D5IG\", \"TSA_HH_VT\")\n  roi_labels <- c(\"Tmax - DWI lesion\", \"Tmax - Contralateral\", \"Tmax - Early infarct growth\", \"Tmax - Late infarct growth\", \"Tmax - Total infarct growth\", \"Tmax - Benign oligemia\", \"BOLD delay VS - DWI lesion\", \"BOLD delay VS - Contralateral\", \"BOLD delay VS - Early infarct growth\", \"BOLD delay VS - Late infarct growth\", \"BOLD delay VS - Total infarct growth\", \"BOLD delay VS - Benign oligemia\",\"BOLD delay HH - DWI lesion\", \"BOLD delay HH - Contralateral\", \"BOLD delay HH - Early infarct growth\", \"BOLD delay HH - Late infarct growth\", \"BOLD delay HH - Total infarct growth\", \"BOLD delay HH - Benign oligemia\")\nprint(paste(i, \"Recan = \", recan_status[subjects==i]))\nfor (x in text_filenames) # loop through ROIs\n  {\n  perf_d0_file <- paste(\"newdata_08062017/voxelwise_vals/\", i, \"/\" , x , \"_D0.txt\" , sep = \"\")\n  perf_d1_file <- paste(\"newdata_08062017/voxelwise_vals/\", i, \"/\", x , \"_D1.txt\", sep = \"\")\n    \n\nif (file.exists(perf_d0_file) && file.exists(perf_d1_file))\n{ \nperf_d0 <- read.csv(perf_d0_file, header = F, sep = \"\")\nperf_d0 <- perf_d0$V4\nperf_d0[perf_d0 < 0] = 0 # SET ALL NEGATIVE VALUES TO ZERO\nperf_d1 <- read.csv(perf_d1_file, header = F, sep = \"\")\nperf_d1 <- perf_d1$V4\nperf_d1[perf_d1 < 0] = 0 # SET ALL NEGATIVE VALUES TO ZERO\n\n# calculate kernel densities for voxelwise BOLD delay values\n  #v = get(i)\n  perf_d0_dens <- density(perf_d0, bw = 1)\n  perf_d1_dens <- density(perf_d1, bw = 1)\n  \n  ## KERNEL DENSITY PLOTS\n          # create transparent fill colours\n          redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)\n          bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)\n  \n  plot(perf_d1_dens, col = \"red\", xlim=(c(0,20)), ylim=c(0,max(perf_d0_dens$y, perf_d1_dens$y)), lwd = 3, xlab = \"Seconds\", main = roi_labels[text_filenames==x])\n  polygon(perf_d1_dens, col = redtrans, border = \"red\")\n  lines(perf_d0_dens, col = \"blue\", lwd = 3)\n  polygon(perf_d0_dens, col = bluetrans, border = \"blue\")\n  \n  abline(v = mean(perf_d0), col = \"blue\", lty = 3, lwd = 3)\n  abline(v = mean(perf_d1), col = \"red\", lty = 3, lwd = 3)\n\n}\n  }  \n}\n```\n",
+    "created" : 1505136623381.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3498094870",
+    "id" : "7903756B",
+    "lastKnownWriteTime" : 1505205430,
+    "last_content_update" : 1505205430560,
+    "path" : "C:/Users/khalila/Desktop/long_BD_files/results_individual.Rmd",
+    "project_path" : "results_individual.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "last_setup_crc32" : "",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

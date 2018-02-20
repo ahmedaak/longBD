@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1518605077578.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "27|102|38|0|\n43|99|113|0|\n119|104|157|0|\n174|90|183|0|\n201|25|203|160|\n208|132|257|0|\n261|81|279|0|\n332|86|373|0|\n376|82|473|0|\n478|86|516|0|\n521|90|612|0|\n",
+    "hash" : "3882294258",
+    "id" : "5EF859DB",
+    "lastKnownWriteTime" : 1518804746,
+    "last_content_update" : 1518805155098,
+    "path" : "C:/Users/khalila/Desktop/long_BD_files/newdata_08062017/JCBFM_Feb18_LongBD_sub1.Rmd",
+    "project_path" : "newdata_08062017/JCBFM_Feb18_LongBD_sub1.Rmd",
+    "properties" : {
+        "chunk_output_type" : "console",
+        "cursorPosition" : "287,8",
+        "scrollLine" : "199",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

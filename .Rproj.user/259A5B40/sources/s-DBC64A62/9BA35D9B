@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1519046684296.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "36|102|46|0|\n51|99|117|0|\n123|104|160|0|\n165|103|168|0|\n177|90|186|0|\n202|89|208|0|\n211|132|260|0|\n286|82|340|0|\n343|86|394|0|\n513|86|551|0|\n",
+    "hash" : "0",
+    "id" : "9BA35D9B",
+    "lastKnownWriteTime" : 1519058359,
+    "last_content_update" : 1519059105052,
+    "path" : "S:/AG/AG-CSB_NeuroRad/fillebvb/DATA_PROCESSING/JCBFM_Feb18_LongBD_sub1.Rmd",
+    "project_path" : "JCBFM_Feb18_LongBD_sub1.Rmd",
+    "properties" : {
+        "chunk_output_type" : "console",
+        "cursorPosition" : "410,18",
+        "scrollLine" : "198"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

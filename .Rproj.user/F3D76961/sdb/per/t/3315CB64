@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "## this script analyzes ROI-wise perfusion values from longitudinal BOLD delay cohort\nrm(list = ls())\nlibrary(R.matlab)\n\n# load data\nBD_tmax <- readMat(\"roivals_tsa_tmax_perf.mat\") # BOLD delay and Tmax\nttp <- readMat(\"roivals_ttp_perf.mat\") # TTP\n\n# combine them\nroi_perf_vals <- append(BD_tmax, ttp)\n\n# calculate differences between ROI values between days 0 + 1\ntmax_diff_recan <- roi_perf_vals$tmax.d1.recan - roi_perf_vals$tmax.d0.recan\ntmax_diff_nonrecan <- roi_perf_vals$tmax.d1.nonrecan - roi_perf_vals$tmax.d0.nonrecan\nBD_diff_recan <- roi_perf_vals$tsa.d1.recan - roi_perf_vals$tsa.d0.recan\nBD_diff_nonrecan <- roi_perf_vals$tsa.d1.nonrecan - roi_perf_vals$tsa.d0.nonrecan\nttp_diff_recan <- roi_perf_vals$ttp.d1.recan - roi_perf_vals$ttp.d0.recan\nttp_diff_nonrecan <- roi_perf_vals$ttp.d1.nonrecan - roi_perf_vals$ttp.d0.nonrecan",
+    "created" : 1496414797037.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "41112026",
+    "id" : "3315CB64",
+    "lastKnownWriteTime" : 1496773606,
+    "last_content_update" : 1496773606658,
+    "path" : "C:/Users/khalila/Desktop/long_BD_files/roivals.R",
+    "project_path" : "roivals.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 4,
+    "source_on_save" : true,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,32 @@
+## This script performs calculations on lesion volumes from the longitudinal BOLD delay study. Revision #1 STROKE May/June 2017
+rm(list = ls())
+library(irr)
+# load data table with all the volumes
+volumes_data <- read.csv2("volumes.csv", header = T, na.strings = "NaN", stringsAsFactors = F, sep = ";", dec = ".")
+# remove column with subject numbers
+volumes_data <- volumes_data[,c(2:18)]
+# add columns for binary recanalization status + TIMI score + whether or not they had a DSC scan as well
+volumes_data$recan <- c("No", "No", "No", "Yes", "No", "No", "Yes", "No", "Yes", "No", "Yes", "Yes", "Yes", "No", "No")
+volumes_data$TIMI <- c(0, 0, 0, 2, 0, 0, 3, 1, 2, 0, 3, 3, 3, 0, 1)
+volumes_data$DSC <- c("Yes","Yes","Yes","Yes","Yes","Yes","Yes","Yes","No","No","No","Yes","No","No","No")
+
+# calculate agreement (ICC) between manual + auto delineation volumes + ratios
+      # BOLD delay volumes d0 + 1
+        r1 <- icc(volumes_data[,c(4,10)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+        r1$comparison <- "BOLD delay D0 manual vs auto"
+        r2 <- icc(volumes_data[,c(5,11)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+        r2$comparison <- "BOLD delay D1 manual vs auto"
+      # BOLD delay ratios
+        r3 <- icc(volumes_data[,c(6,12)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+        r3$comparison <- "BOLD delay ratios manual vs auto"
+      # Tmax volumes
+        r4 <- icc(volumes_data[,c(7,13)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+        r4$comparison <- "Tmax D0 manual vs auto"
+        r5 <- icc(volumes_data[,c(8,14)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+        r5$comparison <- "Tmax D1 manual vs auto"
+      # Tmax ratios
+        r6 <- icc(volumes_data[,c(9,15)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+        r6$comparison <- "Tmax ratios manual vs auto"
+        agr_list_all <- list(r1, r2, r3, r4, r5, r6)
+
+        

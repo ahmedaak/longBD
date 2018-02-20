@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "## This script performs calculations on lesion volumes from the longitudinal BOLD delay study. Revision #1 STROKE May/June 2017\nrm(list = ls())\nlibrary(irr)\n# load data table with all the volumes\nvolumes_data <- read.csv2(\"volumes.csv\", header = T, na.strings = \"NaN\", stringsAsFactors = F, sep = \";\", dec = \".\")\n# remove column with subject numbers\nvolumes_data <- volumes_data[,c(2:18)]\n# add columns for binary recanalization status + TIMI score\nvolumes_data$recan <- c(\"No\", \"No\", \"No\", \"Yes\", \"No\", \"No\", \"Yes\", \"No\", \"Yes\", \"No\", \"Yes\", \"Yes\", \"Yes\", \"No\", \"No\")\nvolumes_data$TIMI <- c(0, 0, 0, 2, 0, 0, 3, 1, 2, 0, 3, 3, 3, 0, 1)\n\n# calculate agreement (ICC) between manual + auto delineation volumes + ratios\n      # BOLD delay volumes d0 + 1\n        r1 <- icc(volumes_data[,c(4,10)], model = \"twoway\", type = \"agreement\", r0 = 0, conf.level = 0.95)\n        r1$comparison <- \"BOLD delay D0 manual vs auto\"\n        r2 <- icc(volumes_data[,c(5,11)], model = \"twoway\", type = \"agreement\", r0 = 0, conf.level = 0.95)\n        r2$comparison <- \"BOLD delay D1 manual vs auto\"\n      # BOLD delay ratios\n        r3 <- icc(volumes_data[,c(6,12)], model = \"twoway\", type = \"agreement\", r0 = 0, conf.level = 0.95)\n        r3$comparison <- \"BOLD delay ratios manual vs auto\"\n      # Tmax volumes\n        r4 <- icc(volumes_data[,c(7,13)], model = \"twoway\", type = \"agreement\", r0 = 0, conf.level = 0.95)\n        r4$comparison <- \"Tmax D0 manual vs auto\"\n        r5 <- icc(volumes_data[,c(8,14)], model = \"twoway\", type = \"agreement\", r0 = 0, conf.level = 0.95)\n        r5$comparison <- \"Tmax D1 manual vs auto\"\n      # Tmax ratios\n        r6 <- icc(volumes_data[,c(9,15)], model = \"twoway\", type = \"agreement\", r0 = 0, conf.level = 0.95)\n        r6$comparison <- \"Tmax ratios manual vs auto\"\n        agr_list_all <- list(r1, r2, r3, r4, r5, r6)\n\n        ",
+    "created" : 1496345725256.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2157124159",
+    "id" : "7511AC3D",
+    "lastKnownWriteTime" : 1496773601,
+    "last_content_update" : 1496773601768,
+    "path" : "C:/Users/khalila/Desktop/long_BD_files/volumes.R",
+    "project_path" : "volumes.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : true,
+    "source_window" : "",
+    "type" : "r_source"
+}

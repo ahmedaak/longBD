@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "# this script plots  kernel densities for perfusion values on D0 + D1 from longitudinal BOLD delay cohort (Rev #1 Stroke, April - June 2017)\n# load data\n# NB: all these are outputted by my MATLAB scripts used for plotting histograms of values - each has 4 columns:\n# Nonrecan D0 : Nonrecan D1 : Recan D0 : Recan D1\nrm(list = ls())\n\nlibrary(R.matlab)\nlibrary(ggplot2)\nlibrary(gridExtra)\n\nBD_VS_nonegs_all <- readMat(\"allvars_BOLD_delay_nonegs.mat\")\nBD_VS_nonegs_DSC <- readMat(\"allvars_BOLD_delay_nonegs_subswithDSC.mat\")\nBD_VS_nonegs_noDWI <- readMat(\"allvars_BD_nonegs_sansDWI.mat\")\n\nBD_HH_nonegs_all <- readMat(\"allvars_BOLD_delay_nonegs_HH.mat\")\nBD_HH_nonegs_DSC <- readMat(\"allvars_BOLD_delay_nonegs_subswithDSC_HH.mat\")\nBD_HH_nonegs_noDWI <- readMat(\"allvars_BD_nonegs_HH_sansDWI.mat\")\n\nTmax <- readMat(\"allvars_Tmax.mat\")\nTTP  <- readMat(\"allvars_TTP.mat\")\n\nperfusion_list <- c(\"BD_VS_nonegs_all\", \"BD_HH_nonegs_all\", \"BD_VS_nonegs_DSC\",\"BD_HH_nonegs_DSC\", \"Tmax\", \"TTP\", \"BD_VS_nonegs_noDWI\",  \"BD_HH_nonegs_noDWI\")\n\nBD_allrois <- c(\"allvars_VSnonrecan_different_ROIs\", \"allvars_VSrecan_different_ROIs\", \"allvars_HHnonrecan_different_ROIs\", \"allvars_HHrecan_different_ROIs\") # 2 different reference signals\n\nBD_meanvals <- c(\"meanBDvals_VSnonrecan_different_ROIs\", \"meanBDvals_HHnonrecan_different_ROIs\", \"meanBDvals_VSrecan_different_ROIs\", \"meanBDvals_HHrecan_different_ROIs\") # 2 different reference signals",
+    "created" : 1496235131894.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3445877519",
+    "id" : "7F509302",
+    "lastKnownWriteTime" : 1496773603,
+    "last_content_update" : 1496773603417,
+    "path" : "C:/Users/khalila/Desktop/long_BD_files/plotting_values.R",
+    "project_path" : "plotting_values.R",
+    "properties" : {
+        "docOutlineVisible" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : true,
+    "source_window" : "",
+    "type" : "r_source"
+}
