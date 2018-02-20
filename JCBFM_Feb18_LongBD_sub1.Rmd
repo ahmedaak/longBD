@@ -552,9 +552,8 @@ abline(v=0.28, lty=3, lwd=2)
 *Note that, in this analysis, n=14 because one subject (sub0179) had a total mismatch at baseline.*
 
 ## Repository files - individual D0/D1 voxelwise perfusion changes plots 
-```{r Repository_plots, message=F, cache=F, warning=F, echo=F, fig.width=10, fig.height=8}
+```{r Repository_plots, message=F, cache=F, warning=F, echo=F, fig.width=10, fig.height=8,fig.path = "Figures/Individual_plots/"}
 # save individual patient plots in a separate directory
-knitr::opts_chunk$set(echo = TRUE, dev = c("png","pdf"), fig.path = "Figures/Individual_plots/")
 
     # subject names
     subjects <- c("sub0028", "sub0030", "sub0036", "sub0056", "sub0058", "sub0127", "sub0147", "sub0153", "sub0156", "sub0177", "sub0179", "sub0186", "sub0189", "sub0203", "sub0206")
