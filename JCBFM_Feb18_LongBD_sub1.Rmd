@@ -13,9 +13,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE, fig.align='center'}
-data_path <- c("S:/AG/AG-CSB_NeuroRad/fillebvb/DATA_PROCESSING/")
-
-knitr::opts_chunk$set(echo = TRUE, dev = c("png","pdf"), fig.path = paste(data_path,"Figures/",sep=""))
+knitr::opts_chunk$set(echo = TRUE, dev = c("png","pdf"), fig.path = "Figures/")
 
 library(coin)
 library(knitr)
@@ -35,7 +33,7 @@ NB: All effect sizes for the Wilcoxon signed-rank test (paired, i.e. two depende
 
 # Demographics & clinical characteristics
 ```{r Demographics, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
-demo_allsubs <- read.csv(file = paste(data_path,"demographics_by_group.csv", sep = ""))
+demo_allsubs <- read.csv("demographics_by_group.csv")
 
 kable(demo_allsubs, caption="Table 1", col.names = c("Patient no.","Age (years)","Sex","NIHSS - admission","NIHSS - discharge","Time from symptom onset to MRI (hours)","Occluded vessel","IV thrombolysis","Recanalization","TIMI score"))
 
@@ -51,7 +49,7 @@ print(summary(demo_allsubs[demo_allsubs$Recanalization=="NO",-1]))
 
 ```{r Figure_1, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=10, fig.height=10}
 # load data table with all the volumes
-    volumes_data <- read.csv2(file=paste(data_path,"volumes.csv",sep=""), header = T, na.strings = "NaN", stringsAsFactors = F, sep = ";", dec = ".")
+    volumes_data <- read.csv2(file="volumes.csv", header = T, na.strings = "NaN", stringsAsFactors = F, sep = ";", dec = ".")
 # remove column with subject numbers
     volumes_data <- volumes_data[,c(2:18)]
 # add columns for binary recanalization status + TIMI score + whether or not they had a DSC scan as well
@@ -210,7 +208,7 @@ for (x in agr_list_all) {
 
 # Relationship between BOLD delay and Tmax for each patient
 ```{r Perfusion_relationship, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=6, fig.height=10, fig.align='center'}
-datadir <- paste(data_path, "mean_ROI_vals_aff_VT",sep="")
+datadir <- "mean_ROI_vals_aff_VT"
 
 # day 0 of subjects with Tmax + recanalization
 d0_subs_recan <- c("sub0056","sub0147","sub0186")
@@ -256,7 +254,7 @@ print(paste(m, "Quantiles ="))
 print(signif(quantile(eval(parse(text=m)))),2)}
 
 print("Descriptive stats for BD/Tmax spatial overlap (Dice coefficient) - D0")
-dice_allsubs <- read.csv(paste(data_path,"dice_coeff_r.csv",sep=""))
+dice_allsubs <- read.csv("dice_coeff_r.csv")
 print(summary(dice_allsubs[dice_allsubs$Day==0,3]))
 ```
 
@@ -266,7 +264,7 @@ print(summary(dice_allsubs[dice_allsubs$Day==0,3]))
 # plot change (delta) in perfusion values in ROIs between days 0 + 1
 
 # load perfusion values within affected VT
-  BD_tmax_aff <- readMat(paste(data_path,"roivals_affVT_tsa_tmax_perf.mat",sep="")) # BOLD delay and Tmax
+  BD_tmax_aff <- readMat("roivals_affVT_tsa_tmax_perf.mat") # BOLD delay and Tmax
   roi_perf_vals_aff <- BD_tmax_aff
 
 # calculate differences between ROI values between days 0 + 1
@@ -286,9 +284,9 @@ legend("topleft", pch = c(1,4), col = c("red", "blue"), legend = c("Non-recanali
 ## Figure 5 - voxelwise changes in BOLD delay and Tmax in subsample with both scans
 ```{r Figure_5, message=F, cache=F, warning=F, echo=F, fig.width=7, fig.height=12}
 # Load in perfusion values
-  BD_VS_nonegs_DSC <- readMat(paste(data_path,"allvars_BOLD_delay_nonegs_subswithDSC.mat",sep=""))
-  BD_HH_nonegs_DSC <- readMat(paste(data_path,"allvars_BOLD_delay_nonegs_subswithDSC_HH.mat",sep=""))
-  Tmax <- readMat(paste(data_path,"allvars_Tmax.mat",sep=""))
+  BD_VS_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC.mat")
+  BD_HH_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC_HH.mat")
+  Tmax <- readMat("allvars_Tmax.mat")
 
   # Define list of perfusion maps
   perfusion_names <- c("BD_VS_nonegs_DSC","BD_HH_nonegs_DSC", "Tmax")
@@ -343,8 +341,8 @@ for (i in perfusion_matrix[,1]) {
 ## Supp Figure 3 - voxelwise changes in BOLD delay values in entire sample
 ```{r Supp_Figure_3, message=F, cache=F, warning=F, echo=F, fig.width=7, fig.height=8}
 # Load in perfusion values
-  BD_VS_nonegs_all <- readMat(paste(data_path,"allvars_BOLD_delay_nonegs.mat",sep=""))
-  BD_HH_nonegs_all <- readMat(paste(data_path,"allvars_BOLD_delay_nonegs_HH.mat",sep=""))
+  BD_VS_nonegs_all <- readMat("allvars_BOLD_delay_nonegs.mat")
+  BD_HH_nonegs_all <- readMat("allvars_BOLD_delay_nonegs_HH.mat")
   
 # Define list of perfusion maps
   perfusion_names_ws <- c("BD_VS_nonegs_all","BD_HH_nonegs_all")
@@ -418,7 +416,7 @@ text_filenames <- c("TSA_VS_BL", "TSA_VS_D1IG", "TSA_VS_VT","TSA_HH_BL", "TSA_HH
        # loop through subjects
                 for(i in subjects_nonrecan) {
                 # check if file exists
-                  roi_es_path_nonrecan <- paste(data_path, "voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
+                  roi_es_path_nonrecan <- paste("voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
                           if(file.exists(roi_es_path_nonrecan)){
                             load(roi_es_path_nonrecan)
                             roi_es_allsubs_nonrecan <- rbind(roi_es_allsubs_nonrecan, perf_d0_d1_es)
@@ -470,7 +468,7 @@ allrois_names_recan <- c()
                   # loop through subjects
                         for(i in subjects_recan) {
                         # check if file exists
-                          roi_es_path_recan <- paste(data_path, "voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
+                          roi_es_path_recan <- paste("voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
                                   if(file.exists(roi_es_path_recan)){
                                     load(roi_es_path_recan)
                                     roi_es_allsubs_recan <- rbind(roi_es_allsubs_recan, perf_d0_d1_es)
@@ -514,7 +512,7 @@ mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 ```{r Supp_Figure_6, message=F, cache=F, warning=F, echo=F, fig.width=6, fig.height=6}
     #rm(list = ls())
     subjects <- c("sub0177","sub0189","sub0056","sub0147","sub0186","sub0028","sub0030","sub0036","sub0058","sub0127","sub0153","sub0203","sub0206","sub0147")
-    setwd(paste(data_path,"cross_corr_all/",sep=""))
+    setwd("cross_corr_all/")
     dwi_maxcc_all <- c()
     cl_maxcc_all <- c()
     tsa_maxcc_all <- c()
@@ -555,6 +553,9 @@ abline(v=0.28, lty=3, lwd=2)
 
 ## Repository files - individual D0/D1 voxelwise perfusion changes plots 
 ```{r Repository_plots, message=F, cache=F, warning=F, echo=F, fig.width=10, fig.height=8}
+# save individual patient plots in a separate directory
+knitr::opts_chunk$set(echo = TRUE, dev = c("png","pdf"), fig.path = "Figures/Individual_plots/")
+
     # subject names
     subjects <- c("sub0028", "sub0030", "sub0036", "sub0056", "sub0058", "sub0127", "sub0147", "sub0153", "sub0156", "sub0177", "sub0179", "sub0186", "sub0189", "sub0203", "sub0206")
     
@@ -580,8 +581,8 @@ allrois_names <- c()
         {
 
         # Define paths to D0 + D1 perfusion files
-        perf_d0_file <- paste(data_path,"voxelwise_vals/", i, "/" , x , "_D0.txt" , sep = "")
-        perf_d1_file <- paste(data_path,"voxelwise_vals/", i, "/", x , "_D1.txt", sep = "")
+        perf_d0_file <- paste("voxelwise_vals/", i, "/" , x , "_D0.txt" , sep = "")
+        perf_d1_file <- paste("voxelwise_vals/", i, "/", x , "_D1.txt", sep = "")
           
               if (file.exists(perf_d0_file) && file.exists(perf_d1_file))
               { 
@@ -595,11 +596,11 @@ allrois_names <- c()
       # load results of tests for differences between D0 + D1 in each of the ROIs
       
               if(length(perf_d0)>1 && length(perf_d1)>1){
-                          load(paste(data_path, "voxelwise_vals/",i, "/", x, "_individual_differences_d0_d1_ROIs.Rdata", sep = ""))
+                          load(paste("voxelwise_vals/",i, "/", x, "_individual_differences_d0_d1_ROIs.Rdata", sep = ""))
       
       # calculate effect size for D0/D1 comparison
                   perf_d0_d1_es <- perf_d0_d1_wilcox@statistic@teststatistic/sqrt(length(perf_d0)*2)
-                  save(perf_d0_d1_es, list = c("perf_d0_d1_es"), file = paste(data_path, "voxelwise_vals/",i, "/", x, "_es.Rdata", sep = ""))
+                  save(perf_d0_d1_es, list = c("perf_d0_d1_es"), file = paste("voxelwise_vals/",i, "/", x, "_es.Rdata", sep = ""))
       
       allrois_es <- c(allrois_es, perf_d0_d1_es)
       allrois_names <- c(allrois_names, x)
