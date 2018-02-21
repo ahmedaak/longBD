@@ -282,7 +282,7 @@ legend("topleft", pch = c(1,4), col = c("red", "blue"), legend = c("Non-recanali
 *Note that this is shown for ROIs within the affected VT and only patients who had both BD and Tmax are included.*
 
 ## Figure 5 - voxelwise changes in BOLD delay and Tmax in subsample with both scans
-```{r Figure_5, message=F, cache=F, warning=F, echo=F, fig.width=7, fig.height=12}
+```{r Figure_5, message=F, cache=F, warning=F, echo=F, fig.width=12, fig.height=7}
 # Load in perfusion values
   BD_VS_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC.mat")
   BD_HH_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC_HH.mat")
@@ -292,12 +292,13 @@ legend("topleft", pch = c(1,4), col = c("red", "blue"), legend = c("Non-recanali
   perfusion_names <- c("BD_VS_nonegs_DSC","BD_HH_nonegs_DSC", "Tmax")
     
   # create subplot labels
-  subplot_labels = matrix(data=c("A","C","E","B","D","F"), nrow = 3, ncol = 2)
+  subplot_labels = matrix(data=c("A","B","C","D","E","F"), nrow = 3, ncol = 2)
 
   # concatenate names of perfusion maps with subplot labels
   perfusion_matrix <- cbind(perfusion_names,subplot_labels)
   
-  par(mfrow=c(3,2),oma=c(0,2,0,0))
+  #par(mfrow=c(3,2),oma=c(0,2,0,0))
+  par(mfcol=c(2,3),oma=c(0,2,0,0))
   
 for (i in perfusion_matrix[,1]) {
   # calculate kernel densities for voxelwise BOLD delay values in entire VTs
@@ -319,7 +320,7 @@ for (i in perfusion_matrix[,1]) {
                 lines(d0_nonrecan, col = "blue", lwd = 3)
                 polygon(d0_nonrecan, col = bluetrans, border = "blue")
                 # add subplot labels
-                mtext(text = perfusion_matrix[perfusion_names==i,2], side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+                mtext(text = perfusion_matrix[perfusion_names==i,2], side = 3, line = 0.5, adj = -0.2, font = 2, cex=1.5)
                 # add mean lines
                 abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
                 abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
@@ -329,7 +330,7 @@ for (i in perfusion_matrix[,1]) {
                 lines(d0_recan, col = "blue", lwd = 3)
                 polygon(d0_recan, col = bluetrans, border = "blue")
                 # add subplot labels
-                mtext(text = perfusion_matrix[perfusion_names==i,3], side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+                mtext(text = perfusion_matrix[perfusion_names==i,3], side = 3, line = 0.5, adj = -0.2, font = 2, cex=1.5)
                 # add mean lines
                 abline(v = mean(v$recan.vals.d0), col = "blue", lty = 3, lwd = 3)
                 abline(v = mean(v$recan.vals.d1), col = "red", lty = 3, lwd = 3)
@@ -339,7 +340,7 @@ for (i in perfusion_matrix[,1]) {
 ```
 
 ## Supp Figure 3 - voxelwise changes in BOLD delay values in entire sample
-```{r Supp_Figure_3, message=F, cache=F, warning=F, echo=F, fig.width=7, fig.height=8}
+```{r Supp_Figure_3, message=F, cache=F, warning=F, echo=F, fig.width=7, fig.height=7}
 # Load in perfusion values
   BD_VS_nonegs_all <- readMat("allvars_BOLD_delay_nonegs.mat")
   BD_HH_nonegs_all <- readMat("allvars_BOLD_delay_nonegs_HH.mat")
@@ -374,7 +375,7 @@ for (i in perfusion_matrix_ws[,1]) {
   lines(d0_nonrecan, col = "blue", lwd = 3)
   polygon(d0_nonrecan, col = bluetrans, border = "blue")
   # add subplot labels
-  mtext(text = perfusion_matrix_ws[perfusion_names_ws==i,2], side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+  mtext(text = perfusion_matrix_ws[perfusion_names_ws==i,2], side = 3, line = 0.5, adj = -0.25, font = 2, cex=1.5)
   
   abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
   abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
@@ -384,7 +385,7 @@ for (i in perfusion_matrix_ws[,1]) {
   lines(d0_recan, col = "blue", lwd = 3)
   polygon(d0_recan, col = bluetrans, border = "blue")
   # add subplot labels
-  mtext(text = perfusion_matrix_ws[perfusion_names_ws==i,3], side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+  mtext(text = perfusion_matrix_ws[perfusion_names_ws==i,3], side = 3, line = 0.5, adj = -0.25, font = 2, cex=1.5)
   
   abline(v = mean(v$recan.vals.d0), col = "blue", lty = 3, lwd = 3)
   abline(v = mean(v$recan.vals.d1), col = "red", lty = 3, lwd = 3)
