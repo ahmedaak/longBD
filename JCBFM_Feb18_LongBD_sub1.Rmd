@@ -115,7 +115,7 @@ par(mfrow=c(2,2), oma=c(0,2,0,0))
       mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 ```
 
-*Note that for the first 3 subfigures, ALL patients in the sample are included. For the last subfigure, only patients who had both BD and Tmax are included.*
+*Note that for the first 2 subfigures, ALL patients in the sample are included. For the last 2 subfigures, only patients who had both BD and Tmax are included.*
 
 ## Supp Figure 1 - Volume Boxplots (automated delineation)
 
