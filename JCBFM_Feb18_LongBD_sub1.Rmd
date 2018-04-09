@@ -315,7 +315,7 @@ for (i in perfusion_matrix[,1]) {
           bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
         
           # Plot non-recanalizers
-                plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)), main = paste(i, "non-recan"), lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
+                plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
                 polygon(d1_nonrecan, col = redtrans, border = "red")
                 lines(d0_nonrecan, col = "blue", lwd = 3)
                 polygon(d0_nonrecan, col = bluetrans, border = "blue")
@@ -325,7 +325,7 @@ for (i in perfusion_matrix[,1]) {
                 abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
                 abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
           # Plot recanalizers
-                plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)), main = paste(i, "recan"), lwd = 3, xlab = "Seconds",cex.lab=1.5,cex.axis=1.5)
+                plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds",cex.lab=1.5,cex.axis=1.5)
                 polygon(d1_recan, col = redtrans, border = "red")
                 lines(d0_recan, col = "blue", lwd = 3)
                 polygon(d0_recan, col = bluetrans, border = "blue")
@@ -343,7 +343,7 @@ mtext("Day 1", col = "red", outer = T, side = 1, line = 0.7, adj=0.535, cex=1.3)
 ```
 
 ## Supp Figure 3 - voxelwise changes in BOLD delay values in entire sample
-```{r Supp_Figure_3, message=F, cache=F, warning=F, echo=F, fig.width=7, fig.height=8}
+```{r Supp_Figure_3, message=F, cache=F, warning=F, echo=F, fig.width=8, fig.height=8}
 # Load in perfusion values
   BD_VS_nonegs_all <- readMat("allvars_BOLD_delay_nonegs.mat")
   BD_HH_nonegs_all <- readMat("allvars_BOLD_delay_nonegs_HH.mat")
@@ -373,7 +373,7 @@ for (i in perfusion_matrix_ws[,1]) {
           redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
           bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
   
-  plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)), main = paste(i, "non-recan"), lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
+  plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
   polygon(d1_nonrecan, col = redtrans, border = "red")
   lines(d0_nonrecan, col = "blue", lwd = 3)
   polygon(d0_nonrecan, col = bluetrans, border = "blue")
@@ -383,7 +383,7 @@ for (i in perfusion_matrix_ws[,1]) {
   abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
   abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
   
-  plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)), main = paste(i, "recan"), lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
+  plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)), main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
   polygon(d1_recan, col = redtrans, border = "red")
   lines(d0_recan, col = "blue", lwd = 3)
   polygon(d0_recan, col = bluetrans, border = "blue")
