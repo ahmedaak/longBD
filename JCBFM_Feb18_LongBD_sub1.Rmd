@@ -45,7 +45,7 @@ print(summary(demo_allsubs[demo_allsubs$Recanalization=="NO",-1]))
 ```
 
 # Volumetric analysis of patients with and without vessel recanalization
-## Figure 1 - Volume Boxplots (manual delineation)
+## Figure 1 - Volume Boxplots with points overlain (manual delineation)
 
 ```{r Figure_1, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=10, fig.height=10}
 # load data table with all the volumes
@@ -69,32 +69,51 @@ print(summary(demo_allsubs[demo_allsubs$Recanalization=="NO",-1]))
 # boxplots of DWI, BOLD delay, Tmax volumes, and BOLD delay/Tmax ratios D1 vs D0 for recanalizers + non-recanalizers
 par(mfrow=c(2,2), oma=c(0,2,0,0))
 # define D0 and D1 colors
-D0_col <- rgb(0,0,1,alpha = 0.5)
-D1_col <- rgb(1,0,0,alpha = 0.5)
-  # DWI volumes
-      boxplot(volumes_data$DWI_D0~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,50), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
-      boxplot(volumes_data$DWI_D1~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+D0_col <- rgb(0,0,1,alpha = 0.3)
+D1_col <- rgb(1,0,0,alpha = 0.3)
+      
+# PRE/POST PLOTS on BOXPLOTS of DWI, BOLD delay, Tmax volumes, and BOLD delay/Tmax ratios D1 vs D0 for recanalizers + non-recanalizers
+par(mfrow=c(2,2), oma=c(0,2,0,0))  
+      
+# DWI volumes 
+# create matrices for matplot
+DWI_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$DWI_D0,volumes_data[volumes_data$recan=="Yes",]$DWI_D1)
+DWI_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$DWI_D0,volumes_data[volumes_data$recan=="No",]$DWI_D1)
+boxplot(volumes_data$DWI_D0~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,max(DWI_recan_matrix,DWI_nonrecan_matrix)), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
+boxplot(volumes_data$DWI_D1~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+matplot(x=c(1,2),y=t(DWI_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
+matplot(x=c(4,5),y=t(DWI_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
       # replace x-axis labels
       axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
       legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
       title("DWI",cex.main=1.5)
       mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+      
+# BOLD delay
+# create matrices for matplot
+BD_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$TSA_D0_man,volumes_data[volumes_data$recan=="Yes",]$TSA_D1_man)
+BD_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$TSA_D0_man,volumes_data[volumes_data$recan=="No",]$TSA_D1_man)
 
-  # BOLD delay volumes
-      boxplot(volumes_data$TSA_D0_man~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,170), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
-      boxplot(volumes_data$TSA_D1_man~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5, cex.axis=1.5,ylab="Volume (mL)", cex.lab=1.5)
+boxplot(volumes_data$TSA_D0_man~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,max(BD_recan_matrix,BD_nonrecan_matrix)+20), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
+boxplot(volumes_data$TSA_D1_man~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5, cex.axis=1.5,ylab="Volume (mL)", cex.lab=1.5)
+matplot(x=c(1,2),y=t(BD_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
+matplot(x=c(4,5),y=t(BD_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
       # replace x-axis labels
       axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
       legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
       title("BOLD delay",cex.main=1.5)
-      mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
-
+      mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)  
       
-  # Tmax volumes
-      boxplot(volumes_data$Tmax_D0_man~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,120), xaxt='n', col= D0_col, boxlwd=1.5, cex.axis=1.5)
-      boxplot(volumes_data$Tmax_D1_man~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+# Tmax volumes
+# create matrices for matplot
+Tmax_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$Tmax_D0_man,volumes_data[volumes_data$recan=="Yes",]$Tmax_D1_man)
+Tmax_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$Tmax_D0_man,volumes_data[volumes_data$recan=="No",]$Tmax_D1_man)
+boxplot(volumes_data$Tmax_D0_man~volumes_data$recan,at=c(4,1),xlim=c(0,6),ylim=c(0,max(Tmax_recan_matrix,Tmax_nonrecan_matrix, na.rm = T)), xaxt='n', col= D0_col, boxlwd=1.5, cex.axis=1.5)
+boxplot(volumes_data$Tmax_D1_man~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+matplot(x=c(1,2),y=t(Tmax_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
+matplot(x=c(4,5),y=t(Tmax_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
       # replace x-axis labels
       axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
@@ -102,18 +121,31 @@ D1_col <- rgb(1,0,0,alpha = 0.5)
       title("Tmax",cex.main=1.5)
       mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
+# Ratios. NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
+      # boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, at=c(1),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
+      # boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
+      # boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_man, add=T, at=c(4),xlim=c(0,6),ylim=c(0,2), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
+      # boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_man, add=T,at=c(5), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
+      # # add horizontal dashed line at ratio = 1
+      # abline(h=1.0, lty=2)
+      # # replace x-axis labels
+      # axis(side = 1, at=c(1.5,4.5),labels=c("BOLD delay","Tmax"), cex.axis=1.5)
+      # # add legend
+      # legend("topright", legend = c("Non-recanalizers","Recanalizers"), fill=c("white","grey"),cex = 1.5)
+      # title("Ratios",cex.main=1.5)
+      # mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
       
-  # Ratios. NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
-      boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, at=c(1),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
-      boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
-      boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_man, add=T, at=c(4),xlim=c(0,6),ylim=c(0,2), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
-      boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_man, add=T,at=c(5), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
+      boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man,at=c(1), xaxt='n', col="white", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5, xaxt='n',xlim=c(0,6),ylim=c(0,2))
+      boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_man, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5)
+      boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, at=c(4),ylim=c(0,2.5), boxlwd=1.5, cex.axis=1.5, boxwex=1.5, add=T, col="white")
+      boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_man, add=T, at=c(5), boxlwd=1.5, cex.axis=1.5, boxwex=1.5, col = "grey")
+
       # add horizontal dashed line at ratio = 1
       abline(h=1.0, lty=2)
       # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("BOLD delay","Tmax"), cex.axis=1.5)
+      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
-      legend("topright", legend = c("Non-recanalizers","Recanalizers"), fill=c("white","grey"),cex = 1.5)
+      legend("topleft", legend = c("BOLD delay","Tmax"), fill=c("white","grey"),cex = 1.5)
       title("Ratios",cex.main=1.5)
       mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 ```
@@ -126,8 +158,13 @@ D1_col <- rgb(1,0,0,alpha = 0.5)
 # boxplots of DWI, BOLD delay, Tmax volumes, and BOLD delay/Tmax ratios D1 vs D0 for recanalizers + non-recanalizers
 par(mfrow=c(2,2), oma=c(0,2,0,0)) 
   # BOLD delay volumes
+# create matrices for matplot
+BD_auto_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$TSA_D0_auto,volumes_data[volumes_data$recan=="Yes",]$TSA_D1_auto)
+BD_auto_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$TSA_D0_auto,volumes_data[volumes_data$recan=="No",]$TSA_D1_auto)
       boxplot(volumes_data$TSA_D0_auto~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,170), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
       boxplot(volumes_data$TSA_D1_auto~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5, cex.axis=1.5,ylab="Volume (mL)", cex.lab=1.5)
+matplot(x=c(1,2),y=t(BD_auto_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
+matplot(x=c(4,5),y=t(BD_auto_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
       # replace x-axis labels
       axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
@@ -136,8 +173,13 @@ par(mfrow=c(2,2), oma=c(0,2,0,0))
       mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
   # Tmax volumes
+# create matrices for matplot
+Tmax_auto_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$Tmax_D0_auto,volumes_data[volumes_data$recan=="Yes",]$Tmax_D1_auto)
+Tmax_auto_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$Tmax_D0_auto,volumes_data[volumes_data$recan=="No",]$Tmax_D1_auto)
       boxplot(volumes_data$Tmax_D0_auto~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,185), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
       boxplot(volumes_data$Tmax_D1_auto~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+matplot(x=c(1,2),y=t(Tmax_auto_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
+matplot(x=c(4,5),y=t(Tmax_auto_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
       # replace x-axis labels
       axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
@@ -146,16 +188,17 @@ par(mfrow=c(2,2), oma=c(0,2,0,0))
       mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
       
   # Ratios. NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
-      boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto, at=c(1),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
-      boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
-      boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_auto, add=T, at=c(4),xlim=c(0,6),ylim=c(0,2), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
-      boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_auto, add=T,at=c(5), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
+      boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto,at=c(1), xaxt='n', col="white", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5,xlim=c(0,6),ylim=c(0,2))
+      boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_auto, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5)      
+      boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto, at=c(4),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=1.5, add=T, col="white")
+      boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_auto, add=T, at=c(5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=1.5, col="grey")
+
       # add horizontal dashed line at ratio = 1
       abline(h=1.0, lty=2)
       # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("BOLD delay","Tmax"), cex.axis=1.5)
+      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
       # add legend
-      legend("topright", legend = c("Non-recanalizers","Recanalizers"), fill=c("white","grey"),cex = 1.5)
+      legend("topleft", legend = c("BOLD delay","Tmax"), fill=c("white","grey"),cex = 1.5)
       title("Ratios",cex.main=1.5)
       mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
       
@@ -355,12 +398,12 @@ mtext("Day 1", col = "red", outer = T, side = 1, line = 0.7, adj=0.535, cex=1.3)
   perfusion_names_ws <- c("BD_VS_nonegs_all","BD_HH_nonegs_all")
 
 # create subplot labels
-  subplot_labels = matrix(data=c("A","C","B","D"), nrow = 2, ncol = 2)
+  subplot_labels = matrix(data=c("A","B","C","D"), nrow = 2, ncol = 2)
 
 # concatenate names of perfusion maps with subplot labels
   perfusion_matrix_ws <- cbind(perfusion_names_ws,subplot_labels)
   
-par(mfrow=c(2,2),oma=c(2,2,0,0))
+par(mfcol=c(2,2),oma=c(2,2,0,0))
   
 for (i in perfusion_matrix_ws[,1]) {
   # calculate kernel densities for voxelwise BOLD delay values in entire VTs
