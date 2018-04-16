@@ -1,11 +1,14 @@
 ---
-title: 'Results of longitudinal BOLD delay manuscript, submission #3, to JCBFM)'
+title: 'Results of longitudinal BOLD delay manuscript'
 author: "Ahmed Khalil"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
   html_document:
     number_sections: yes
     theme: journal
+    toc: true
+    toc_float: true
+    toc_depth: 1
   pdf_document: default
   word_document: default
 editor_options: 
@@ -13,8 +16,12 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE, fig.align='center'}
+# clear workspace
+rm(list = ls())
+
 knitr::opts_chunk$set(echo = TRUE, dev = c("png","pdf"), fig.path = "Figures/")
 
+# load necessary packages
 library(coin)
 library(knitr)
 library(ggplot2)
@@ -25,16 +32,20 @@ library(reshape2)
 
 ```
 
-This is a comprehensive report of all the results of the "Longitudinal BOLD delay" manuscript, submitted  to *JCBFM* in February/March 2018.
+This is a comprehensive report of all the results of the "Longitudinal BOLD delay" manuscript, submitted  to *JCBFM* in April 2018.
+Code written by Ahmed A Khalil (ahmed-abdelrahim.khalil@charite.de). 
 
-NB: These are all the results *reported in the manuscript & supplementary material & uploaded to the online repository*, the "results.Rmd" file contains ALL the results.
+NB: These are all the results and plots *reported in the manuscript & supplementary material & uploaded to the online repository*.
 
 NB: All effect sizes for the Wilcoxon signed-rank test (paired, i.e. two dependent groups) calculated according to *Rosenthal, Robert. Parametric measures of effect size. The handbook of research synthesis (1994): 231-244*.
 
 # Demographics & clinical characteristics
 ```{r Demographics, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+
+# read in demographic data
 demo_allsubs <- read.csv("demographics_by_group.csv")
 
+# output table of demographic data
 kable(demo_allsubs, caption="Table 1", col.names = c("Patient no.","Age (years)","Sex","NIHSS - admission","NIHSS - discharge","Time from symptom onset to MRI (hours)","Occluded vessel","IV thrombolysis","Recanalization","TIMI score"))
 
 ## summary stats of recan vs non-recan
@@ -44,249 +55,284 @@ print("Non-recanalizers")
 print(summary(demo_allsubs[demo_allsubs$Recanalization=="NO",-1]))
 ```
 
-# Volumetric analysis of patients with and without vessel recanalization
+# Volumetric analysis
 ## Figure 1 - Volume Boxplots with points overlain (manual delineation)
 
 ```{r Figure_1, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=10, fig.height=10}
+
+                              # PREPARE VOLUMETRIC DATA #
 # load data table with all the volumes
-    volumes_data <- read.csv2(file="volumes.csv", header = T, na.strings = "NaN", stringsAsFactors = F, sep = ";", dec = ".")
+volumes_data <- read.csv2(file="volumes.csv", header = T, na.strings = "NaN", stringsAsFactors = F, sep = ";", dec = ".")
+
 # remove column with subject numbers
-    volumes_data <- volumes_data[,c(2:18)]
+volumes_data <- volumes_data[,c(2:18)]
+
 # add columns for binary recanalization status + TIMI score + whether or not they had a DSC scan as well
-    volumes_data$recan <- c("No", "No", "No", "Yes", "No", "No", "Yes", "No", "Yes", "No", "Yes", "Yes", "Yes", "No", "No")
-    volumes_data$TIMI <- c(0, 0, 0, 2, 0, 0, 3, 1, 2, 0, 3, 3, 3, 0, 1)
-    volumes_data$DSC <- c("Yes","Yes","Yes","Yes","Yes","Yes","Yes","Yes","No","No","No","Yes","No","No","No")
+volumes_data$recan <- c("No", "No", "No", "Yes", "No", "No", "Yes", "No", "Yes", "No", "Yes", "Yes", "Yes", "No", "No")
+volumes_data$TIMI <- c(0, 0, 0, 2, 0, 0, 3, 1, 2, 0, 3, 3, 3, 0, 1)
+volumes_data$DSC <- c("Yes","Yes","Yes","Yes","Yes","Yes","Yes","Yes","No","No","No","Yes","No","No","No")
 
-      # calculate agreement (ICC) between manual + auto delineation ratios - see section below with "agreement between ..."
-            # BOLD delay ratios
-              r3 <- icc(volumes_data[,c(6,12)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
-              r3$comparison <- "BOLD delay ratios manual vs auto"
-            # Tmax ratios
-              r6 <- icc(volumes_data[,c(9,15)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
-              r6$comparison <- "Tmax ratios manual vs auto"
-              agr_list_all <- list(r3,r6)
+            # CALCULATE AGREEMENT (ICC) BETWEEN MANUAL + AUTO VOLUMES #
+# BOLD delay ratios
+TSA_agreement <- icc(volumes_data[,c(6,12)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+TSA_agreement$comparison <- "BOLD delay ratios manual vs auto"
+# Tmax ratios
+Tmax_agreement <- icc(volumes_data[,c(9,15)], model = "twoway", type = "agreement", r0 = 0, conf.level = 0.95)
+Tmax_agreement$comparison <- "Tmax ratios manual vs auto"
 
-# boxplots of DWI, BOLD delay, Tmax volumes, and BOLD delay/Tmax ratios D1 vs D0 for recanalizers + non-recanalizers
-par(mfrow=c(2,2), oma=c(0,2,0,0))
+# create list of agreement results, where each element is a perfusion method (BOLD delay or Tmax)
+agr_list_all <- list(TSA_agreement,Tmax_agreement)
+
+
+                      # PRE/POST PLOTS ON BOXPLOTS OF VOLUMES #
+
+# create appropriate layout with space for other text
+par(mfrow=c(2,2), oma=c(0,2,0,0))  
+
 # define D0 and D1 colors
 D0_col <- rgb(0,0,1,alpha = 0.3)
 D1_col <- rgb(1,0,0,alpha = 0.3)
-      
-# PRE/POST PLOTS on BOXPLOTS of DWI, BOLD delay, Tmax volumes, and BOLD delay/Tmax ratios D1 vs D0 for recanalizers + non-recanalizers
-par(mfrow=c(2,2), oma=c(0,2,0,0))  
-      
+
 # DWI volumes 
 # create matrices for matplot
 DWI_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$DWI_D0,volumes_data[volumes_data$recan=="Yes",]$DWI_D1)
 DWI_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$DWI_D0,volumes_data[volumes_data$recan=="No",]$DWI_D1)
+
+# create boxplots
 boxplot(volumes_data$DWI_D0~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,max(DWI_recan_matrix,DWI_nonrecan_matrix)), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
 boxplot(volumes_data$DWI_D1~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+
+# overlay pre-post connected dots on boxplots
 matplot(x=c(1,2),y=t(DWI_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
 matplot(x=c(4,5),y=t(DWI_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
-      title("DWI",cex.main=1.5)
-      mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
-      
-# BOLD delay
+
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
+
+# add legend
+legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
+title("DWI",cex.main=1.5)
+mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+
+# BOLD delay volumes
 # create matrices for matplot
 BD_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$TSA_D0_man,volumes_data[volumes_data$recan=="Yes",]$TSA_D1_man)
 BD_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$TSA_D0_man,volumes_data[volumes_data$recan=="No",]$TSA_D1_man)
 
+# create boxplots
 boxplot(volumes_data$TSA_D0_man~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,max(BD_recan_matrix,BD_nonrecan_matrix)+20), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
 boxplot(volumes_data$TSA_D1_man~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5, cex.axis=1.5,ylab="Volume (mL)", cex.lab=1.5)
+
+# overlay pre-post connected dots on boxplots
 matplot(x=c(1,2),y=t(BD_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
 matplot(x=c(4,5),y=t(BD_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
-      title("BOLD delay",cex.main=1.5)
-      mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)  
-      
+
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
+
+# add legend
+legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
+title("BOLD delay",cex.main=1.5)
+mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)  
+
 # Tmax volumes
 # create matrices for matplot
 Tmax_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$Tmax_D0_man,volumes_data[volumes_data$recan=="Yes",]$Tmax_D1_man)
 Tmax_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$Tmax_D0_man,volumes_data[volumes_data$recan=="No",]$Tmax_D1_man)
+
+# create boxplots
 boxplot(volumes_data$Tmax_D0_man~volumes_data$recan,at=c(4,1),xlim=c(0,6),ylim=c(0,max(Tmax_recan_matrix,Tmax_nonrecan_matrix, na.rm = T)), xaxt='n', col= D0_col, boxlwd=1.5, cex.axis=1.5)
 boxplot(volumes_data$Tmax_D1_man~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+
+# overlay pre-post connected dots on boxplots
 matplot(x=c(1,2),y=t(Tmax_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
 matplot(x=c(4,5),y=t(Tmax_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)  
-      title("Tmax",cex.main=1.5)
-      mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
-# Ratios. NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
-      # boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, at=c(1),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
-      # boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
-      # boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_man, add=T, at=c(4),xlim=c(0,6),ylim=c(0,2), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=2)
-      # boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_man, add=T,at=c(5), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=2)
-      # # add horizontal dashed line at ratio = 1
-      # abline(h=1.0, lty=2)
-      # # replace x-axis labels
-      # axis(side = 1, at=c(1.5,4.5),labels=c("BOLD delay","Tmax"), cex.axis=1.5)
-      # # add legend
-      # legend("topright", legend = c("Non-recanalizers","Recanalizers"), fill=c("white","grey"),cex = 1.5)
-      # title("Ratios",cex.main=1.5)
-      # mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
-      
-      boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man,at=c(1), xaxt='n', col="white", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5, xaxt='n',xlim=c(0,6),ylim=c(0,2))
-      boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_man, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5)
-      boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, at=c(4),ylim=c(0,2.5), boxlwd=1.5, cex.axis=1.5, boxwex=1.5, add=T, col="white")
-      boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_man, add=T, at=c(5), boxlwd=1.5, cex.axis=1.5, boxwex=1.5, col = "grey")
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
 
-      # add horizontal dashed line at ratio = 1
-      abline(h=1.0, lty=2)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("BOLD delay","Tmax"), fill=c("white","grey"),cex = 1.5)
-      title("Ratios",cex.main=1.5)
-      mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+# add legend
+legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)  
+title("Tmax",cex.main=1.5)
+mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+
+# Volume ratios
+# NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
+# create boxplots
+boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man,at=c(1), xaxt='n', col="white", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5, xaxt='n',xlim=c(0,6),ylim=c(0,2))
+boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_man, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5)
+boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_man, at=c(4),ylim=c(0,2.5), boxlwd=1.5, cex.axis=1.5, boxwex=1.5, add=T, col="white")
+boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_man, add=T, at=c(5), boxlwd=1.5, cex.axis=1.5, boxwex=1.5, col = "grey")
+
+# add horizontal dashed line at ratio = 1
+abline(h=1.0, lty=2)
+
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
+
+# add legend
+legend("topleft", legend = c("BOLD delay","Tmax"), fill=c("white","grey"),cex = 1.5)
+title("Ratios",cex.main=1.5)
+mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 ```
 
-*Note that for the first 2 subfigures, ALL patients in the sample are included. For the last 2 subfigures, only patients who had both BD and Tmax are included.*
+*Note that for the first 2 subfigures (A-B), ALL patients in the sample are included. For the last 2 subfigures (C-D), only patients who had both BD and Tmax are included.*
 
 ## Supp Figure 1 - Volume Boxplots (automated delineation)
 
 ```{r Supp_Figure_1, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=10, fig.height=10}
-# boxplots of DWI, BOLD delay, Tmax volumes, and BOLD delay/Tmax ratios D1 vs D0 for recanalizers + non-recanalizers
-par(mfrow=c(2,2), oma=c(0,2,0,0)) 
-  # BOLD delay volumes
+                      # PRE/POST PLOTS ON BOXPLOTS OF VOLUMES #
+
+# prepare layout, including space for text
+par(mfrow=c(2,2), oma=c(0,2,0,0))
+
+# BOLD delay volumes
 # create matrices for matplot
 BD_auto_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$TSA_D0_auto,volumes_data[volumes_data$recan=="Yes",]$TSA_D1_auto)
 BD_auto_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$TSA_D0_auto,volumes_data[volumes_data$recan=="No",]$TSA_D1_auto)
-      boxplot(volumes_data$TSA_D0_auto~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,170), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
-      boxplot(volumes_data$TSA_D1_auto~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5, cex.axis=1.5,ylab="Volume (mL)", cex.lab=1.5)
+
+# create boxplots
+boxplot(volumes_data$TSA_D0_auto~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,170), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
+boxplot(volumes_data$TSA_D1_auto~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5, cex.axis=1.5,ylab="Volume (mL)", cex.lab=1.5)
+
+# overlay pre-post connected dots on boxplots
 matplot(x=c(1,2),y=t(BD_auto_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
 matplot(x=c(4,5),y=t(BD_auto_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
-      title("BOLD delay",cex.main=1.5)
-      mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
-  # Tmax volumes
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
+
+# add legend
+legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)
+title("BOLD delay",cex.main=1.5)
+mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+
+# Tmax volumes
 # create matrices for matplot
 Tmax_auto_recan_matrix <- cbind(volumes_data[volumes_data$recan=="Yes",]$Tmax_D0_auto,volumes_data[volumes_data$recan=="Yes",]$Tmax_D1_auto)
 Tmax_auto_nonrecan_matrix <- cbind(volumes_data[volumes_data$recan=="No",]$Tmax_D0_auto,volumes_data[volumes_data$recan=="No",]$Tmax_D1_auto)
-      boxplot(volumes_data$Tmax_D0_auto~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,185), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
-      boxplot(volumes_data$Tmax_D1_auto~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+
+# create boxplots
+boxplot(volumes_data$Tmax_D0_auto~volumes_data$recan, at=c(4,1),xlim=c(0,6),ylim=c(0,185), xaxt='n', col=D0_col, boxlwd=1.5, cex.axis=1.5)
+boxplot(volumes_data$Tmax_D1_auto~volumes_data$recan, add=T,at=c(5,2), xaxt='n', col=D1_col, boxlwd=1.5,ylab="Volume (mL)", cex.axis=1.5, cex.lab=1.5)
+
+# overlay pre-post connected dots on boxplots
 matplot(x=c(1,2),y=t(Tmax_auto_recan_matrix), type= "b", pch = 19,col = "black", lty=1, xaxt="n", add=T)
 matplot(x=c(4,5),y=t(Tmax_auto_nonrecan_matrix), type= "b", pch = 19,col = "black", lty=1, add = T)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)  
-      title("Tmax",cex.main=1.5)
-      mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
-      
-  # Ratios. NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
-      boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto,at=c(1), xaxt='n', col="white", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5,xlim=c(0,6),ylim=c(0,2))
-      boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_auto, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5)      
-      boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto, at=c(4),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=1.5, add=T, col="white")
-      boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_auto, add=T, at=c(5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=1.5, col="grey")
 
-      # add horizontal dashed line at ratio = 1
-      abline(h=1.0, lty=2)
-      # replace x-axis labels
-      axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
-      # add legend
-      legend("topleft", legend = c("BOLD delay","Tmax"), fill=c("white","grey"),cex = 1.5)
-      title("Ratios",cex.main=1.5)
-      mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
-      
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
+
+# add legend
+legend("topleft", legend = c("Day 0","Day 1"), fill=c(D0_col,D1_col),cex = 1.5)  
+title("Tmax",cex.main=1.5)
+mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+
+# Volume ratios
+# NB: the BOLD delay ratios here are ONLY for subjects who have both BD + Tmax (for comparison purposes)
+# create boxplots
+boxplot(volumes_data[volumes_data$recan=="Yes" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto,at=c(1), xaxt='n', col="white", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5,xlim=c(0,6),ylim=c(0,2))
+boxplot(volumes_data[volumes_data$recan=="Yes",]$Tmax_ratio_auto, add=T,at=c(2), xaxt='n', col="grey", boxlwd=1.5, cex.axis=1.5,ylab="D1/D0 volume ratio", cex.axis=1.5, cex.lab=1.5, boxwex=1.5)      
+boxplot(volumes_data[volumes_data$recan=="No" & volumes_data$Tmax_D0_man!="NA",]$TSA_ratio_auto, at=c(4),xlim=c(0,6),ylim=c(0,2.5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=1.5, add=T, col="white")
+boxplot(volumes_data[volumes_data$recan=="No",]$Tmax_ratio_auto, add=T, at=c(5), xaxt='n', boxlwd=1.5, cex.axis=1.5, boxwex=1.5, col="grey")
+
+# add horizontal dashed line at ratio = 1
+abline(h=1.0, lty=2)
+
+# replace x-axis labels
+axis(side = 1, at=c(1.5,4.5),labels=c("Recanalizers","Non-recanalizers"), cex.axis=1.5)
+
+# add legend
+legend("topleft", legend = c("BOLD delay","Tmax"), fill=c("white","grey"),cex = 1.5)
+title("Ratios",cex.main=1.5)
+mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
+
 ```
 
-*Note that for the first 3 subfigures, ALL patients in the sample are included. For the last subfigure, only patients who had both BD and Tmax are included.*
+*Note that for the first 2 subfigures (A-B), ALL patients in the sample are included. For the last subfigure (C), only patients who had both BD and Tmax are included.*
 
 ## Lesion growth in recanalizers vs non-recanalizers
 ```{r Lesion_growth, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+
+# Wilcoxon rank-sum test of differences in lesion volume ratios between recanalizers and non-recanalizers
 growth_DWI <- wilcox.test(volumes_data$DWI_ratio~volumes_data$recan)
-growth_BD <- wilcox.test(volumes_data$TSA_ratio_man~volumes_data$recan)
+growth_BD_man <- wilcox.test(volumes_data$TSA_ratio_man~volumes_data$recan)
+growth_BD_auto <- wilcox.test(volumes_data$TSA_ratio_auto~volumes_data$recan)
+
 ```
 
 Difference between DWI lesion growth in recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="Yes",]$DWI_ratio,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="Yes",]$DWI_ratio,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="Yes",]$DWI_ratio,na.rm=T)[4]`) vs non-recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="No",]$DWI_ratio,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="No",]$DWI_ratio,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="No",]$DWI_ratio,na.rm=T)[4]`), p=`r growth_DWI$p.value`
 
-Difference between BOLD delay lesion growth in recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_man,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_man,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_man,na.rm=T)[4]`) vs non-recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_man,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_man,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_man,na.rm=T)[4]`), p=`r growth_BD$p.value`
+Difference between BOLD delay lesion growth (manual) in recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_man,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_man,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_man,na.rm=T)[4]`) vs non-recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_man,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_man,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_man,na.rm=T)[4]`), p=`r growth_BD_man$p.value`
 
+Difference between BOLD delay lesion growth (auto) in recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_auto,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_auto,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="Yes",]$TSA_ratio_auto,na.rm=T)[4]`) vs non-recanalizers (median=`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_auto,na.rm=T)[3]`, IQR=`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_auto,na.rm=T)[2]`--`r quantile(volumes_data[volumes_data$recan=="No",]$TSA_ratio_auto,na.rm=T)[4]`), p=`r growth_BD_auto$p.value`
 
-
-## Differences in median volume ratios between recanalizers and non-recanalizers & correlation between volume ratios and TIMI scores
-```{r Volume_difference, message=F, cache=F, warning=F, echo=F, fig.width=5, fig.height=5}
-# test for differences in median ratios with Mann Whitney U test between recan + nonrecan
-recan_ratio_wilcox1 <- wilcox.test(volumes_data$TSA_ratio_man~volumes_data$recan)
-recan_ratio_wilcox2 <- wilcox.test(volumes_data$TSA_ratio_auto~volumes_data$recan)
-
-# calculate correlations between ratios and TIMI scores
-timi_ratio_corr1 <- cor.test(volumes_data$TSA_ratio_man, volumes_data$TIMI, method = "spearman")
-timi_ratio_corr2 <- cor.test(volumes_data$TSA_ratio_auto, volumes_data$TIMI, method = "spearman")
-
-```
-
-`r I(recan_ratio_wilcox1$method)` between `r I(recan_ratio_wilcox1$data.name)` is p = `r round(I(recan_ratio_wilcox1$p.value),5)`.
-
-`r I(recan_ratio_wilcox2$method)` between `r I(recan_ratio_wilcox2$data.name)` is p = `r round(I(recan_ratio_wilcox2$p.value),5)`.
 
 **In patients with vessel recanalization within 24 hours of baseline imaging, BOLD delay lesions become smaller.
 In patients with persistent vessel occlusion (PVO), BOLD delay lesions expand, unlike Tmax lesions, which tend to remain stable/shrink a little in this situation.**
 
-`r I(timi_ratio_corr1$method)` between `r I(timi_ratio_corr1$data.name)` is `r round(I(timi_ratio_corr1$estimate),2)`, p = `r round(I(timi_ratio_corr1$p.value),5)`.
+## Correlation between volume ratios and TIMI scores
+```{r Volume_difference, message=F, cache=F, warning=F, echo=F, fig.width=5, fig.height=5}
 
-`r I(timi_ratio_corr2$method)` between `r I(timi_ratio_corr2$data.name)` is `r round(I(timi_ratio_corr2$estimate),2)`, p = `r round(I(timi_ratio_corr2$p.value),5)`.
+# calculate correlations between ratios and TIMI scores
+timi_tsa_ratio_corr_man <- cor.test(volumes_data$TSA_ratio_man, volumes_data$TIMI, method = "spearman")
+timi_tsa_ratio_corr_auto <- cor.test(volumes_data$TSA_ratio_auto, volumes_data$TIMI, method = "spearman")
+
+```
+
+
+
+`r I(timi_tsa_ratio_corr_man$method)` between BOLD delay volume ratio (manual) and TIMI score is `r round(I(timi_tsa_ratio_corr_man$estimate),2)`, p = `r round(I(timi_tsa_ratio_corr_man$p.value),5)`.
+
+`r I(timi_tsa_ratio_corr_auto$method)` between BOLD delay volume ratio (auto) and TIMI score is `r round(I(timi_tsa_ratio_corr_auto$estimate),2)`, p = `r round(I(timi_tsa_ratio_corr_auto$p.value),5)`.
 
 **The change in BOLD delay lesion volume between baseline (D0) and follow-up (D1) correlates with the degree of vessel recanalization as measured by the TIMI score.**
 
 ## Agreement between manually and automatically delineated perfusion lesion volumes
 ```{r Volume_agreement, message=F, cache=F, warning=F, echo=F, fig.width=5, fig.height=5}
 # print agreement between volumes + ratios      
+# do this for BOLD delay and Tmax (each element of the list, generated above, is a perfusion method - i.e. BOLD delay or Tmax)
 for (x in agr_list_all) {
-        print(x$comparison)
-        print(paste("ICC=", round(x$value,2), ", 95% CI =", round(x$lbound,2), "-", round(x$ubound,2), ", p =", round(x$p.value,4), ", F =", round(x$Fvalue,2)))}
+  print(x$comparison)
+  print(paste("ICC=", round(x$value,2), ", 95% CI =", round(x$lbound,2), "-", round(x$ubound,2), ", p =", round(x$p.value,4), ", F =", round(x$Fvalue,2)))}
 
 ```
 
-# Relationship between BOLD delay and Tmax for each patient
+# Relationship between BOLD delay and Tmax - correlation and spatial overlap
 ```{r Perfusion_relationship, message=FALSE, cache=FALSE, warning=FALSE, echo=FALSE, fig.width=6, fig.height=10, fig.align='center'}
+
+# define where the data are located (mean perfusion values in ROIs for each subject)
 datadir <- "mean_ROI_vals_aff_VT"
 
-# day 0 of subjects with Tmax + recanalization
+# define folders with D0 data of subjects with and without recanalization (who also received DSC-MRI)
 d0_subs_recan <- c("sub0056","sub0147","sub0186")
 d0_subs_nonrecan <- c("sub0028","sub0030","sub0036","sub0058","sub0127","sub0153")
 
-# rho for all subs
+# pre-allocate vectors to store rho for all subs
 rho_d0_recan <- c()
 rho_d0_nonrecan <- c()
 
-par(mfrow=c(3,3))
-
 for (i in c(d0_subs_recan, d0_subs_nonrecan)) {
-    # load  d0 values
-    d0_tmax_vals <- read.table(file = paste(datadir,"/",i,"_tmax_vals.txt", sep = ""))
-    d0_tsa_VS_vals <- read.table(file = paste(datadir,"/",i,"_tsa_vals.txt", sep = ""))
-
-    # remove empty ROI labels (because of labelling of VT atlas ROIs)
-    d0_tmax_vals <- as.numeric(d0_tmax_vals[c(1:96,seq(from = 100, to = 6000, by = 100))])
-    d0_tsa_VS_vals <- as.numeric(d0_tsa_VS_vals[c(1:96,seq(from = 100, to = 6000, by = 100))])
-    
-    # turn zeroes into NaNs
-    d0_tmax_vals[d0_tmax_vals==0]=NaN
-    d0_tsa_VS_vals[d0_tsa_VS_vals==0]=NaN
-
-    # calculate correlation coefficients between Tmax and BD for this subject
-    corr_spearman_d0 <- cor.test(d0_tmax_vals, d0_tsa_VS_vals, method = "spearman")
-    
-    # save correlation coefficients for recanalizers + non-recanalizers separately across patients    
-    if(sum(match(d0_subs_recan,i),na.rm=T) == 1){ # if this dataset is from a recanalizer
+  # read D0 mean ROI perfusion values
+  d0_tmax_vals <- read.table(file = paste(datadir,"/",i,"_tmax_vals.txt", sep = ""))
+  d0_tsa_VS_vals <- read.table(file = paste(datadir,"/",i,"_tsa_vals.txt", sep = ""))
+  
+  # remove empty ROI labels (because of labelling of VT atlas ROIs)
+  d0_tmax_vals <- as.numeric(d0_tmax_vals[c(1:96,seq(from = 100, to = 6000, by = 100))])
+  d0_tsa_VS_vals <- as.numeric(d0_tsa_VS_vals[c(1:96,seq(from = 100, to = 6000, by = 100))])
+  
+  # turn zeroes into NaNs
+  d0_tmax_vals[d0_tmax_vals==0]=NaN
+  d0_tsa_VS_vals[d0_tsa_VS_vals==0]=NaN
+  
+  # calculate correlation coefficients between Tmax and BD for this subject
+  corr_spearman_d0 <- cor.test(d0_tmax_vals, d0_tsa_VS_vals, method = "spearman")
+  
+  # save correlation coefficients for recanalizers + non-recanalizers separately across patients    
+  if(sum(match(d0_subs_recan,i),na.rm=T) == 1){ # if this dataset is from a recanalizer
     rho_d0_recan <- rbind(rho_d0_recan, corr_spearman_d0$estimate)}
-    
-    if(sum(match(d0_subs_nonrecan,i),na.rm=T) == 1){ # if this dataset is  from a non-recanalizer
+  
+  if(sum(match(d0_subs_nonrecan,i),na.rm=T) == 1){ # if this dataset is  from a non-recanalizer
     rho_d0_nonrecan <- rbind(rho_d0_nonrecan, corr_spearman_d0$estimate)}
 }
 
@@ -296,32 +342,43 @@ print("All patients, Quantiles =")
 print(signif(quantile(rho_d0_allsubs),2))
 
 for (m in c("rho_d0_recan","rho_d0_nonrecan")){
-print(paste(m, "Quantiles ="))
-print(signif(quantile(eval(parse(text=m)))),2)}
+  print(paste(m, "Quantiles ="))
+  print(signif(quantile(eval(parse(text=m)))),2)}
 
 print("Descriptive stats for BD/Tmax spatial overlap (Dice coefficient) - D0")
+# read spatial overlap data
 dice_allsubs <- read.csv("dice_coeff_r.csv")
+# print spatial overlap summary stats
 print(summary(dice_allsubs[dice_allsubs$Day==0,3]))
 ```
 
-# Changes in perfusion over time
+# Changes in perfusion (BOLD delay/Tmax) over time - group level
 ## Figure 4 - Changes in mean Tmax and BOLD delay values within ROIs in the affected vascular territory 
 ```{r Figure_4, message=F, cache=F, warning=F, echo=F, fig.width=5, fig.height=5}
-# plot change (delta) in perfusion values in ROIs between days 0 + 1
-
-# load perfusion values within affected VT
-  BD_tmax_aff <- readMat("roivals_affVT_tsa_tmax_perf.mat") # BOLD delay and Tmax
-  roi_perf_vals_aff <- BD_tmax_aff
+# load mean perfusion values within ROIs of the affected VT
+roi_perf_vals_aff <- readMat("roivals_affVT_tsa_tmax_perf.mat") # BOLD delay and Tmax
 
 # calculate differences between ROI values between days 0 + 1
+# Tmax
 tmax_diff_recan <- roi_perf_vals_aff$tmax.d1.recan - roi_perf_vals_aff$tmax.d0.recan
 tmax_diff_nonrecan <- roi_perf_vals_aff$tmax.d1.nonrecan - roi_perf_vals_aff$tmax.d0.nonrecan
+
+# BOLD delay
 BD_diff_recan <- roi_perf_vals_aff$tsa.d1.recan - roi_perf_vals_aff$tsa.d0.recan
 BD_diff_nonrecan <- roi_perf_vals_aff$tsa.d1.nonrecan - roi_perf_vals_aff$tsa.d0.nonrecan
 
+        # PLOT CHANGE IN MEAN PERFUSION VALUES IN ROIs BETWEEN DAYS 0 AND 1 # 
+
+# plot non-recanalizers
 plot(tmax_diff_nonrecan, BD_diff_nonrecan, col = "#d95f02", ylim = range(BD_diff_recan, BD_diff_nonrecan), xlim = range(tmax_diff_recan, tmax_diff_nonrecan), xlab = "Delta Tmax (s)", ylab = "Delta BOLD delay (s)")
+
+# plot recanalizers
 points(tmax_diff_recan, BD_diff_recan, col = "#1b9e77", pch=4)
+
+# add line going through zero in x and y axes
 abline(v=0, h=0, lty = 2)
+
+# add legend
 legend("topleft", pch = c(1,4), col = c("#d95f02","#1b9e77"), legend = c("Non-recanalizers", "Recanalizers"))
 ```
 
@@ -330,112 +387,118 @@ legend("topleft", pch = c(1,4), col = c("#d95f02","#1b9e77"), legend = c("Non-re
 ## Figure 5 - voxelwise changes in BOLD delay and Tmax in subsample with both scans
 ```{r Figure_5, message=F, cache=F, warning=F, echo=F, fig.width=12, fig.height=7}
 # Load in perfusion values
-  BD_VS_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC.mat")
-  BD_HH_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC_HH.mat")
-  Tmax <- readMat("allvars_Tmax.mat")
+BD_VS_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC.mat")
+BD_HH_nonegs_DSC <- readMat("allvars_BOLD_delay_nonegs_subswithDSC_HH.mat")
+Tmax <- readMat("allvars_Tmax.mat")
 
-  # Define list of perfusion maps
-  perfusion_names <- c("BD_VS_nonegs_DSC","BD_HH_nonegs_DSC", "Tmax")
-    
-  # create subplot labels
-  subplot_labels = matrix(data=c("A","B","C","D","E","F"), nrow = 3, ncol = 2)
+# Define list of perfusion maps
+perfusion_names <- c("BD_VS_nonegs_DSC","BD_HH_nonegs_DSC", "Tmax")
 
-  # concatenate names of perfusion maps with subplot labels
-  perfusion_matrix <- cbind(perfusion_names,subplot_labels)
-  
-  #par(mfrow=c(3,2),oma=c(0,2,0,0))
-  par(mfcol=c(2,3),oma=c(2,2,0,0))
-  
+# create subplot labels
+subplot_labels = matrix(data=c("A","B","C","D","E","F"), nrow = 3, ncol = 2)
+
+# concatenate names of perfusion maps with subplot labels
+perfusion_matrix <- cbind(perfusion_names,subplot_labels)
+
+# prepare layout, including space for text
+par(mfcol=c(2,3),oma=c(2,2,0,0))
+
 for (i in perfusion_matrix[,1]) {
+  
+    # PLOT DISTRIBUTION OF PERFUSION VALUES ON DAYS 0 AND 1 (KERNEL DENSITY) #
+  
   # calculate kernel densities for voxelwise BOLD delay values in entire VTs
   v = get(i)
   d0_nonrecan <- density(v$nonrecan.vals.d0, bw = 1)
   d1_nonrecan <- density(v$nonrecan.vals.d1, bw = 1)
-  
   d0_recan <- density(v$recan.vals.d0, bw = 1)
   d1_recan <- density(v$recan.vals.d1, bw = 1)
   
-  ## KERNEL DENSITY PLOTS
-          # create transparent fill colours
-          redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
-          bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
-        
-          # Plot non-recanalizers
-                plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
-                polygon(d1_nonrecan, col = redtrans, border = "red")
-                lines(d0_nonrecan, col = "blue", lwd = 3)
-                polygon(d0_nonrecan, col = bluetrans, border = "blue")
-                # add subplot labels
-                mtext(text = perfusion_matrix[perfusion_names==i,2], side = 3, line = 0.5, adj = -0.2, font = 2, cex=1.5)
-                # add mean lines
-                abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
-                abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
-          # Plot recanalizers
-                plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds",cex.lab=1.5,cex.axis=1.5)
-                polygon(d1_recan, col = redtrans, border = "red")
-                lines(d0_recan, col = "blue", lwd = 3)
-                polygon(d0_recan, col = bluetrans, border = "blue")
-                # add subplot labels
-                mtext(text = perfusion_matrix[perfusion_names==i,3], side = 3, line = 0.5, adj = -0.2, font = 2, cex=1.5)
-                # add mean lines
-                abline(v = mean(v$recan.vals.d0), col = "blue", lty = 3, lwd = 3)
-                abline(v = mean(v$recan.vals.d1), col = "red", lty = 3, lwd = 3)
+  # create transparent fill colours
+  redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
+  bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
+  
+  # plot non-recanalizers
+  plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
+  lines(d0_nonrecan, col = "blue", lwd = 3)
+  # fill in KD plot
+  polygon(d1_nonrecan, col = redtrans, border = "red")
+  polygon(d0_nonrecan, col = bluetrans, border = "blue")
+  # add subplot labels
+  mtext(text = perfusion_matrix[perfusion_names==i,2], side = 3, line = 0.5, adj = -0.2, font = 2, cex=1.5)
+  # add mean lines
+  abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
+  abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
+  # Plot recanalizers
+  plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds",cex.lab=1.5,cex.axis=1.5)
+  lines(d0_recan, col = "blue", lwd = 3)
+  # fill in KD plot
+  polygon(d1_recan, col = redtrans, border = "red")
+  polygon(d0_recan, col = bluetrans, border = "blue")
+  # add subplot labels
+  mtext(text = perfusion_matrix[perfusion_names==i,3], side = 3, line = 0.5, adj = -0.2, font = 2, cex=1.5)
+  # add mean lines
+  abline(v = mean(v$recan.vals.d0), col = "blue", lty = 3, lwd = 3)
+  abline(v = mean(v$recan.vals.d1), col = "red", lty = 3, lwd = 3)
   
 }
-  
+
 mtext("Day 0", col = "blue", outer = T, side = 1, line = 0.7, adj=0.475, cex=1.3)
 mtext("Day 1", col = "red", outer = T, side = 1, line = 0.7, adj=0.535, cex=1.3)
-  
+
 ```
 
 ## Supp Figure 3 - voxelwise changes in BOLD delay values in entire sample
 ```{r Supp_Figure_3, message=F, cache=F, warning=F, echo=F, fig.width=8, fig.height=8}
 # Load in perfusion values
-  BD_VS_nonegs_all <- readMat("allvars_BOLD_delay_nonegs.mat")
-  BD_HH_nonegs_all <- readMat("allvars_BOLD_delay_nonegs_HH.mat")
-  
+BD_VS_nonegs_all <- readMat("allvars_BOLD_delay_nonegs.mat")
+BD_HH_nonegs_all <- readMat("allvars_BOLD_delay_nonegs_HH.mat")
+
 # Define list of perfusion maps
-  perfusion_names_ws <- c("BD_VS_nonegs_all","BD_HH_nonegs_all")
+perfusion_names_ws <- c("BD_VS_nonegs_all","BD_HH_nonegs_all")
 
 # create subplot labels
-  subplot_labels = matrix(data=c("A","B","C","D"), nrow = 2, ncol = 2)
+subplot_labels = matrix(data=c("A","B","C","D"), nrow = 2, ncol = 2)
 
 # concatenate names of perfusion maps with subplot labels
-  perfusion_matrix_ws <- cbind(perfusion_names_ws,subplot_labels)
-  
+perfusion_matrix_ws <- cbind(perfusion_names_ws,subplot_labels)
+
 par(mfcol=c(2,2),oma=c(2,2,0,0))
-  
+
 for (i in perfusion_matrix_ws[,1]) {
+  
+      # PLOT DISTRIBUTION OF PERFUSION VALUES ON DAYS 0 AND 1 (KERNEL DENSITY) #
+
   # calculate kernel densities for voxelwise BOLD delay values in entire VTs
   v = get(i)
   d0_nonrecan <- density(v$nonrecan.vals.d0, bw = 1)
   d1_nonrecan <- density(v$nonrecan.vals.d1, bw = 1)
-  
   d0_recan <- density(v$recan.vals.d0, bw = 1)
   d1_recan <- density(v$recan.vals.d1, bw = 1)
   
-  ## KERNEL DENSITY PLOTS
-          # create transparent fill colours
-          redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
-          bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
-  
+  # create transparent fill colours
+  redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
+  bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
+  # plot non-recanalizers
   plot(d1_nonrecan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)),main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
-  polygon(d1_nonrecan, col = redtrans, border = "red")
   lines(d0_nonrecan, col = "blue", lwd = 3)
+  # fill in KD plot
+  polygon(d1_nonrecan, col = redtrans, border = "red")
   polygon(d0_nonrecan, col = bluetrans, border = "blue")
   # add subplot labels
   mtext(text = perfusion_matrix_ws[perfusion_names_ws==i,2], side = 3, line = 0.5, adj = -0.25, font = 2, cex=1.5)
-  
+  # add mean lines
   abline(v = mean(v$nonrecan.vals.d0), col = "blue", lty = 3, lwd = 3)
   abline(v = mean(v$nonrecan.vals.d1), col = "red", lty = 3, lwd = 3)
-  
+  # plot recanalizers
   plot(d1_recan, col = "red", xlim=(c(0,20)), ylim=c(0,max(d0_nonrecan$y, d1_nonrecan$y, d0_recan$y, d1_recan$y)), main = "", lwd = 3, xlab = "Seconds", cex.lab=1.5,cex.axis=1.5)
-  polygon(d1_recan, col = redtrans, border = "red")
   lines(d0_recan, col = "blue", lwd = 3)
+  # fill in KD plot
+  polygon(d1_recan, col = redtrans, border = "red")
   polygon(d0_recan, col = bluetrans, border = "blue")
   # add subplot labels
   mtext(text = perfusion_matrix_ws[perfusion_names_ws==i,3], side = 3, line = 0.5, adj = -0.25, font = 2, cex=1.5)
-  
+  # add mean lines
   abline(v = mean(v$recan.vals.d0), col = "blue", lty = 3, lwd = 3)
   abline(v = mean(v$recan.vals.d1), col = "red", lty = 3, lwd = 3)
   
@@ -447,113 +510,149 @@ mtext("Day 1", col = "red", outer = T, side = 1, line = 0.7, adj=0.55, cex=1.2)
 
 ## Figure 6 - Effect sizes for D0 vs D1 comparison in certain ROIs
 ```{r Figure_6, message=F, cache=F, warning=F, echo=F, fig.width=9, fig.height=9}
-    
-# define subjects with and without recanalization
-    subjects_nonrecan <- c("sub0028", "sub0030", "sub0036", "sub0058", "sub0127", "sub0153", "sub0177", "sub0203", "sub0206")
-    subjects_recan <- c("sub0056", "sub0147", "sub0156", "sub0179", "sub0186", "sub0189")
 
+# define subjects with and without recanalization in entire sample
+subjects_nonrecan <- c("sub0028", "sub0030", "sub0036", "sub0058", "sub0127", "sub0153", "sub0177", "sub0203", "sub0206")
+subjects_recan <- c("sub0056", "sub0147", "sub0156", "sub0179", "sub0186", "sub0189")
+
+# prepare layout, including space for text
 par(mfrow=c(2,2), oma=c(0,2,0,0))
 
-                        ############ NON-RECANALIZERS ################
-# ES for all ROIs, all subjects with no recanalization
+                    ############ NON-RECANALIZERS ################
+# pre-allocate vectors for effect sizes in non-recanalizers 
 allrois_es_allsubs_nonrecan <- c()
 allrois_names_nonrecan <- c()
 
-## ROIs to display
+# ROIs to be displayed in the plots
 text_filenames <- c("TSA_VS_BL", "TSA_VS_D1IG", "TSA_VS_VT","TSA_HH_BL", "TSA_HH_D1IG", "TSA_HH_VT")
 
 # loop through ROIs
-      for(x in text_filenames){
-       roi_es_allsubs_nonrecan <- paste(x,"_allsubs",sep = "")
-       assign(roi_es_allsubs_nonrecan, c())
-       # loop through subjects
-                for(i in subjects_nonrecan) {
-                # check if file exists
-                  roi_es_path_nonrecan <- paste("voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
-                          if(file.exists(roi_es_path_nonrecan)){
-                            load(roi_es_path_nonrecan)
-                            roi_es_allsubs_nonrecan <- rbind(roi_es_allsubs_nonrecan, perf_d0_d1_es)
-                          }
-                }
-      # print ROI name
-       print(paste("Non-recan", x))
-       
-      # print ES descriptive stats
-       roi_es_allsubs_nonrecan <- as.numeric(roi_es_allsubs_nonrecan[-1,])
-       allrois_names_nonrecan <- c(allrois_names_nonrecan, x)
-       allrois_es_allsubs_nonrecan <- cbind(allrois_es_allsubs_nonrecan, roi_es_allsubs_nonrecan)
-       colnames(allrois_es_allsubs_nonrecan) <- allrois_names_nonrecan
-       print(summary(roi_es_allsubs_nonrecan))
-      print(paste("n=",length(roi_es_allsubs_nonrecan)))
-      
-      }
+for(x in text_filenames){
+  roi_es_allsubs_nonrecan <- paste(x,"_allsubs",sep = "")
+  assign(roi_es_allsubs_nonrecan, c())
+  # loop through subjects
+  for(i in subjects_nonrecan) {
+    # check if file exists
+    roi_es_path_nonrecan <- paste("voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
+    if(file.exists(roi_es_path_nonrecan)){
+      # read effect size file (pre-calculated - takes a long time)
+      load(roi_es_path_nonrecan)
+      # concatenate effect sizes across subjects into one vector
+      roi_es_allsubs_nonrecan <- rbind(roi_es_allsubs_nonrecan, perf_d0_d1_es)
+    }
+  }
+                        # PRINT EFFECT SIZE RESULTS #
+  # print ROI name
+  print(paste("Non-recan", x))
+  # prepare the effect size data
+  roi_es_allsubs_nonrecan <- as.numeric(roi_es_allsubs_nonrecan[-1,])
+  # concatenate ROI names into one vector
+  allrois_names_nonrecan <- c(allrois_names_nonrecan, x)
+  # concatenate effect sizes across ROIs into one dataframe (rows=subjects, cols=ROIs)
+  allrois_es_allsubs_nonrecan <- cbind(allrois_es_allsubs_nonrecan, roi_es_allsubs_nonrecan)
+  # give meaningful ROI names to columns
+  colnames(allrois_es_allsubs_nonrecan) <- allrois_names_nonrecan
+  # print summary stats of effect sizes in group
+  print(summary(roi_es_allsubs_nonrecan))
+  # print number of subjects in group
+  print(paste("n=",length(roi_es_allsubs_nonrecan)))
+  
+}
 
-# plot separately FOR PAPER - VS
+                      # PLOT DISTRIBUTION OF EFFECT SIZES # 
+# BOLD delay - venous sinus reference
 allrois_es_allsubs_nonrecan_long_VS <- melt(allrois_es_allsubs_nonrecan[,1:3], id.vars =allrois_names_nonrecan)
+# create boxplots
 boxplot(value ~ Var2, data = allrois_es_allsubs_nonrecan_long_VS, cex.axis = 0.7, outline = F, xaxt = "n", main = "", ylim = c(-0.5, 0.7), xlab = "ROI", ylab = "Effect size", yaxt = "n",cex.lab=1.5) 
+# add individual points
 stripchart(value ~ Var2, vertical = TRUE, data = allrois_es_allsubs_nonrecan_long_VS, method = "jitter", add = TRUE, pch = 20, col = 'blue', cex = 1.5)
+# label x axes meaningfully
 axis(side = 1, labels = c("D0 DWI lesion", "Infarct growth", "Rest of VT"), at = c(1,2,3))
 axis(side = 2, cex.axis = 1.5)
+# add line at y=0
 abline(h=0, lty = 2)
 # add subplot labels
 mtext(text = "A", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
-# plot separately FOR PAPER - HH
+# BOLD delay - healthy hemisphere reference
 allrois_es_allsubs_nonrecan_long_HH <- melt(allrois_es_allsubs_nonrecan[,4:6], id.vars =allrois_names_nonrecan)
+# create boxplots
 boxplot(value ~ Var2, data = allrois_es_allsubs_nonrecan_long_HH, cex.axis = 0.7, outline = F, xaxt = "n", main = "", ylim = c(-0.5, 0.7), xlab = "ROI", ylab = "Effect size", yaxt = "n",cex.lab=1.5) 
+# add individual points
 stripchart(value ~ Var2, vertical = TRUE, data = allrois_es_allsubs_nonrecan_long_HH, method = "jitter", add = TRUE, pch = 20, col = 'blue', cex = 1.5)
+# label x axes meaningfully
 axis(side = 1, labels = c("D0 DWI lesion", "Infarct growth", "Rest of VT"), at = c(1,2,3))
 axis(side = 2, cex.axis = 1.5)
+# add line at y=0
 abline(h=0, lty = 2)
 # add subplot labels
 mtext(text = "B", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
 
-                  ################## RECANALIZERS ##################
-# ES for all ROIs, all subjects with recanalization
+                    ################## RECANALIZERS ##################
+# pre-allocate vectors for effect sizes in recanalizers 
 allrois_es_allsubs_recan <- c()
 allrois_names_recan <- c()
-        # loop through ROIs
-          for(x in text_filenames)
-          {
-           roi_es_allsubs_recan <- paste(x,"_allsubs",sep = "")
-           assign(roi_es_allsubs_recan, c())
-                  # loop through subjects
-                        for(i in subjects_recan) {
-                        # check if file exists
-                          roi_es_path_recan <- paste("voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
-                                  if(file.exists(roi_es_path_recan)){
-                                    load(roi_es_path_recan)
-                                    roi_es_allsubs_recan <- rbind(roi_es_allsubs_recan, perf_d0_d1_es)
-                                  }
-                        }
-          # print ROI name
-           print(paste("Recan", x))
-          # print ES descriptive stats ( ? also include N)
-           roi_es_allsubs_recan <- as.numeric(roi_es_allsubs_recan[-1,])
-           allrois_names_recan <- c(allrois_names_recan, x)
-           allrois_es_allsubs_recan <- cbind(allrois_es_allsubs_recan, roi_es_allsubs_recan)
-           colnames(allrois_es_allsubs_recan) <- allrois_names_recan
-           print(summary(roi_es_allsubs_recan))
-           print(paste("n=",length(roi_es_allsubs_recan)))
-           }
 
-# plot separately FOR PAPER - VS
+# loop through ROIs to be displayed in plots
+for(x in text_filenames)
+{
+  roi_es_allsubs_recan <- paste(x,"_allsubs",sep = "")
+  assign(roi_es_allsubs_recan, c())
+  # loop through subjects
+  for(i in subjects_recan) {
+    # check if file exists
+    roi_es_path_recan <- paste("voxelwise_vals/",i,"/",x,"_es.Rdata", sep = "")
+    if(file.exists(roi_es_path_recan)){
+      # read effect size file (pre-calculated - takes a long time)
+      load(roi_es_path_recan)
+      # pre-allocate vectors for effect sizes in non-recanalizers 
+      roi_es_allsubs_recan <- rbind(roi_es_allsubs_recan, perf_d0_d1_es)
+    }
+  }
+                          # PRINT EFFECT SIZE RESULTS #
+
+  # print ROI name
+  print(paste("Recan", x))
+  # prepare the effect size data
+  roi_es_allsubs_recan <- as.numeric(roi_es_allsubs_recan[-1,])
+  # concatenate ROI names into one vector
+  allrois_names_recan <- c(allrois_names_recan, x)
+  # concatenate effect sizes across ROIs into one dataframe (rows=subjects, cols=ROIs)
+  allrois_es_allsubs_recan <- cbind(allrois_es_allsubs_recan, roi_es_allsubs_recan)
+  # give meaningful ROI names to columns
+  colnames(allrois_es_allsubs_recan) <- allrois_names_recan
+  # print summary stats of effect sizes in group
+  print(summary(roi_es_allsubs_recan))
+  # print number of subjects in group
+  print(paste("n=",length(roi_es_allsubs_recan)))
+}
+
+                      # PLOT DISTRIBUTION OF EFFECT SIZES # 
+# BOLD delay - venous sinus reference
 allrois_es_allsubs_recan_long_VS <- melt(allrois_es_allsubs_recan[,1:3], id.vars =allrois_names_recan)
+# create boxplots
 boxplot(value ~ Var2, data = allrois_es_allsubs_recan_long_VS, cex.axis = 0.7, outline = F, xaxt = "n", main = "", ylim = c(-0.5, 0.7), xlab = "ROI", ylab = "Effect size", yaxt = "n",cex.lab=1.5) 
+# add individual points
 stripchart(value ~ Var2, vertical = TRUE, data = allrois_es_allsubs_recan_long_VS, method = "jitter", add = TRUE, pch = 20, col = 'blue', cex = 1.5)
+# label x axes meaningfully
 axis(side = 1, labels = c("D0 DWI lesion", "Infarct growth", "Rest of VT"), at = c(1,2,3))
 axis(side = 2, cex.axis = 1.5)
+# add line at y=0
 abline(h=0, lty = 2)
 # add subplot labels
 mtext(text = "C", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
-# plot separately FOR PAPER - HH
+# BOLD delay - healthy hemisphere reference
 allrois_es_allsubs_recan_long_HH <- melt(allrois_es_allsubs_recan[,4:6], id.vars =allrois_names_recan)
+# create boxplots
 boxplot(value ~ Var2, data = allrois_es_allsubs_recan_long_HH, cex.axis = 0.7, outline = F, xaxt = "n", main = "", ylim = c(-0.5, 0.7), xlab = "ROI", ylab = "Effect size", yaxt = "n",cex.lab=1.5) 
+# add individual points
 stripchart(value ~ Var2, vertical = TRUE, data = allrois_es_allsubs_recan_long_HH, method = "jitter", add = TRUE, pch = 20, col = 'blue', cex = 1.5)
+# label x axes meaningfully
 axis(side = 1, labels = c("D0 DWI lesion", "Infarct growth", "Rest of VT"), at = c(1,2,3))
 axis(side = 2, cex.axis = 1.5)
+# add line at y=0
 abline(h=0, lty = 2)
 # add subplot labels
 mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
@@ -563,136 +662,154 @@ mtext(text = "D", side = 3, line = 0.5, adj = -0.15, font = 2, cex=1.5)
 
 ## Supp Figure 6 - Distribution of maximum correlation coefficients in ROIs, pooled across all subjects
 ```{r Supp_Figure_6, message=F, cache=F, warning=F, echo=F, fig.width=6, fig.height=6}
-    #rm(list = ls())
-    subjects <- c("sub0177","sub0189","sub0056","sub0147","sub0186","sub0028","sub0030","sub0036","sub0058","sub0127","sub0153","sub0203","sub0206","sub0147")
-    setwd("cross_corr_all/")
-    dwi_maxcc_all <- c()
-    cl_maxcc_all <- c()
-    tsa_maxcc_all <- c()
+# define list of all subjects - EXCEPT sub0179 who has a total perf-diff mismatch
+subjects_maxcc <- c("sub0177","sub0189","sub0056","sub0147","sub0186","sub0028","sub0030","sub0036","sub0058","sub0127","sub0153","sub0203","sub0206","sub0147")
 
-par(mfrow=c(8,2))
-for (i in subjects) {
-# load in values of maxcc for each subject and ROI
-dwi_maxcc <- read.table(paste(i, "DWI_maxcc.txt", sep = "_"))
-dwi_maxcc <- dwi_maxcc[,4]
+setwd("cross_corr_all/")
 
-cl_maxcc <- read.table(paste(i, "cl_maxcc.txt", sep = "_"))
-cl_maxcc <- cl_maxcc[,4]
+# pre-allocate vectors of maxcc across subjects for each ROI
+dwi_maxcc_all <- c()
+cl_maxcc_all <- c()
+tsa_maxcc_all <- c()
 
-tsa_maxcc <- read.table(paste(i, "TSA_maxcc.txt", sep = "_"))
-tsa_maxcc <- tsa_maxcc[,4]
-
-# concatenate values of maxcc across subjects
-dwi_maxcc_all <- rbind(dwi_maxcc_all, dwi_maxcc)
-cl_maxcc_all <- rbind(cl_maxcc_all, cl_maxcc)
-tsa_maxcc_all <- rbind(tsa_maxcc_all, tsa_maxcc)
-
+# loop through each subject
+for (i in subjects_maxcc) {
+  # load in values of maxcc for each subject and ROI
+  # Day 0 DWI lesion
+  dwi_maxcc <- read.table(paste(i, "DWI_maxcc.txt", sep = "_"))
+  dwi_maxcc <- dwi_maxcc[,4]
+  # Contralateral vascular territory
+  cl_maxcc <- read.table(paste(i, "cl_maxcc.txt", sep = "_"))
+  cl_maxcc <- cl_maxcc[,4]
+  # Day 0 BOLD delay lesion
+  tsa_maxcc <- read.table(paste(i, "TSA_maxcc.txt", sep = "_"))
+  tsa_maxcc <- tsa_maxcc[,4]
+  
+  # concatenate values of maxcc across subjects
+  dwi_maxcc_all <- rbind(dwi_maxcc_all, dwi_maxcc)
+  cl_maxcc_all <- rbind(cl_maxcc_all, cl_maxcc)
+  tsa_maxcc_all <- rbind(tsa_maxcc_all, tsa_maxcc)
+  
 }
 
+# calculate kernel densities of maxcc in each ROI
 dwi_maxcc_all_d <- density(dwi_maxcc_all)
 cl_maxcc_all_d <- density(cl_maxcc_all)
 tsa_maxcc_all_d <- density(tsa_maxcc_all)
 
+# prepare layout for plots
 par(mfrow=c(1,1))
+
+# plot kernel density
+# contralateral vascular territory
 plot(cl_maxcc_all_d, ylim = c(0, max(cl_maxcc_all_d$y, dwi_maxcc_all_d$y, tsa_maxcc_all_d$y)), lwd = 3, xlab = "Maximum correlation coefficient", main = "", xlim=c(-0.2,1), cex.lab=1.5, cex.axis=1.5, col="#1b9e77")
+# Day 0 DWI lesion
 lines(dwi_maxcc_all_d, col = "#d95f02", lwd = 3)
+# Day 0 BOLD delay lesion
 lines(tsa_maxcc_all_d, col = "#7570b3", lwd = 3)
+# add legend
 legend("topright", legend = c("Contralateral","DWI lesion","BOLD delay lesion"),col=c("#1b9e77","#d95f02","#7570b3"),lty=1,lwd=3)
+# add line at statistical significance threshold for correlation
 abline(v=0.28, lty=3, lwd=2)
 
 ```
 
 *Note that, in this analysis, n=14 because one subject (sub0179) had a total mismatch at baseline.*
 
-## Repository files - individual D0/D1 voxelwise perfusion changes plots 
+# Changes in perfusion (BOLD delay/Tmax) over time - individual level
+
+These results are not in the manuscript, they are on a publicly accessible repository: https://doi.org/10.6084/m9.figshare.5904619
 ```{r Repository_plots, message=F, cache=F, warning=F, echo=F, fig.width=10, fig.height=8,fig.path = "Figures/Individual_plots/"}
-# save individual patient plots in a separate directory
+# define list of subject names (entire sample)
+subjects_all <- c("sub0028", "sub0030", "sub0036", "sub0056", "sub0058", "sub0127", "sub0147", "sub0153", "sub0156", "sub0177", "sub0179", "sub0186", "sub0189", "sub0203", "sub0206")
 
-    # subject names
-    subjects <- c("sub0028", "sub0030", "sub0036", "sub0056", "sub0058", "sub0127", "sub0147", "sub0153", "sub0156", "sub0177", "sub0179", "sub0186", "sub0189", "sub0203", "sub0206")
-    
-    # recanalization status
-    recan_status <- c("N", "N", "N", "Y", "N", "N", "Y", "N", "Y", "N", "Y", "Y", "Y", "N", "N")
-    
-    # names of ROIs, from which the perfusion values are extracted + plotted
-      text_filenames <- c("Tmax_BL", "Tmax_CL", "Tmax_D0D1IG", "Tmax_VT", "TSA_VS_BL", "TSA_VS_CL", "TSA_VS_D1IG", "TSA_VS_VT", "TSA_HH_BL", "TSA_HH_CL", "TSA_HH_D1IG", "TSA_HH_VT")
-      
-    # labels of ROIs, from which the perfusion values are extracted + plotted
-        roi_labels <- c("Tmax - D0 DWI lesion", "Tmax - Contralateral", "Tmax - Infarct growth", "Tmax - Rest of VT", "BOLD delay VS - D0 DWI lesion", "BOLD delay VS - Contralateral", "BOLD delay VS - Infarct growth", "BOLD delay VS - Rest of VT","BOLD delay HH - D0 DWI lesion", "BOLD delay HH - Contralateral", "BOLD delay HH - Infarct growth", "BOLD delay HH - Rest of VT")
+# define recanalization status of each subject
+recan_status <- c("N", "N", "N", "Y", "N", "N", "Y", "N", "Y", "N", "Y", "Y", "Y", "N", "N")
 
-    ############ LOOP THROUGH SUBJECTS ###############
-for (i in subjects){  
+# define names of ROIs, from which the perfusion values are extracted and plotted
+text_filenames <- c("Tmax_BL", "Tmax_CL", "Tmax_D0D1IG", "Tmax_VT", "TSA_VS_BL", "TSA_VS_CL", "TSA_VS_D1IG", "TSA_VS_VT", "TSA_HH_BL", "TSA_HH_CL", "TSA_HH_D1IG", "TSA_HH_VT")
 
-par(mfrow=c(3,4), oma=c(4,0,2,0))
+# define labels of ROIs, from which the perfusion values are extracted and plotted
+roi_labels <- c("Tmax - D0 DWI lesion", "Tmax - Contralateral", "Tmax - Infarct growth", "Tmax - Rest of VT", "BOLD delay VS - D0 DWI lesion", "BOLD delay VS - Contralateral", "BOLD delay VS - Infarct growth", "BOLD delay VS - Rest of VT","BOLD delay HH - D0 DWI lesion", "BOLD delay HH - Contralateral", "BOLD delay HH - Infarct growth", "BOLD delay HH - Rest of VT")
 
-allrois_es <- c()
-allrois_names <- c()
-          
-                          ############## LOOP THROUGH ROIS ##################
-      for (x in text_filenames) 
-        {
-
-        # Define paths to D0 + D1 perfusion files
-        perf_d0_file <- paste("voxelwise_vals/", i, "/" , x , "_D0.txt" , sep = "")
-        perf_d1_file <- paste("voxelwise_vals/", i, "/", x , "_D1.txt", sep = "")
-          
-              if (file.exists(perf_d0_file) && file.exists(perf_d1_file))
-              { 
-              perf_d0 <- read.csv(perf_d0_file, header = F, sep = "")
-              perf_d0 <- perf_d0$V4
-              perf_d0[perf_d0 < 0] = 0 # SET ALL NEGATIVE VALUES TO ZERO
-              perf_d1 <- read.csv(perf_d1_file, header = F, sep = "")
-              perf_d1 <- perf_d1$V4
-              perf_d1[perf_d1 < 0] = 0 # SET ALL NEGATIVE VALUES TO ZERO
+# loop through subjects
+for (i in subjects_all){  
+  # prepare layout for plots, including space for text
+  par(mfrow=c(3,4), oma=c(4,0,2,0))
+  # pre-allocate vectors for effect sizes and ROI names
+  allrois_es <- c()
+  allrois_names <- c()
+  # loop through ROIs
+  for (x in text_filenames) 
+  {
+    # Define paths to D0 + D1 perfusion files
+    perf_d0_file <- paste("voxelwise_vals/", i, "/" , x , "_D0.txt" , sep = "")
+    perf_d1_file <- paste("voxelwise_vals/", i, "/", x , "_D1.txt", sep = "")
+    # only do this if ROI file exists on both days
+    if (file.exists(perf_d0_file) && file.exists(perf_d1_file))
+    { 
+      # read D0 and D1 perfusion values
+      perf_d0 <- read.csv(perf_d0_file, header = F, sep = "")
+      perf_d1 <- read.csv(perf_d1_file, header = F, sep = "")
+      # ignore voxel coordinates, take only actual perfusion values
+      perf_d0 <- perf_d0$V4
+      perf_d1 <- perf_d1$V4
+      # set all negative perfusion values to zero (NB: only relevant to BOLD delay)   
+      perf_d0[perf_d0 < 0] = 0 
+      perf_d1[perf_d1 < 0] = 0 
       
-      # load results of tests for differences between D0 + D1 in each of the ROIs
-      
-              if(length(perf_d0)>1 && length(perf_d1)>1){
-                          load(paste("voxelwise_vals/",i, "/", x, "_individual_differences_d0_d1_ROIs.Rdata", sep = ""))
-      
-      # calculate effect size for D0/D1 comparison
-                  perf_d0_d1_es <- perf_d0_d1_wilcox@statistic@teststatistic/sqrt(length(perf_d0)*2)
-                  save(perf_d0_d1_es, list = c("perf_d0_d1_es"), file = paste("voxelwise_vals/",i, "/", x, "_es.Rdata", sep = ""))
-      
-      allrois_es <- c(allrois_es, perf_d0_d1_es)
-      allrois_names <- c(allrois_names, x)
-                  
+      # load results of Wilcoxon signed-rank tests of differences between D0 + D1 in each of the ROIs
+      if(length(perf_d0)>1 && length(perf_d1)>1){
+        load(paste("voxelwise_vals/",i, "/", x, "_individual_differences_d0_d1_ROIs.Rdata", sep = ""))
+        
+        # calculate effect size for D0 vs D1 comparison
+        perf_d0_d1_es <- perf_d0_d1_wilcox@statistic@teststatistic/sqrt(length(perf_d0)*2)
+        save(perf_d0_d1_es, list = c("perf_d0_d1_es"), file = paste("voxelwise_vals/",i, "/", x, "_es.Rdata", sep = ""))
+        
+        # concatenate effect sizes across ROIs
+        allrois_es <- c(allrois_es, perf_d0_d1_es)
+        # concatenate ROI names
+        allrois_names <- c(allrois_names, x)
+        
       }
       
-      # calculate kernel densities for voxelwise BOLD delay values
-        perf_d0_dens <- density(perf_d0, bw = 1)
-        perf_d1_dens <- density(perf_d1, bw = 1)
-        
-      # CREATE KERNEL DENSITY PLOTS
-                # create transparent fill colours
-                redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
-                bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
-                
-                # plot
-                plot(perf_d1_dens, col = "red", xlim=(c(0,20)), ylim=c(0,max(perf_d0_dens$y, perf_d1_dens$y)), lwd = 3, xlab = "Seconds", main = roi_labels[text_filenames==x])
-                polygon(perf_d1_dens, col = redtrans, border = "red")
-                lines(perf_d0_dens, col = "blue", lwd = 3)
-                polygon(perf_d0_dens, col = bluetrans, border = "blue")
-        
-                # add vertical lines showing D0 + D1 means
-                abline(v = mean(perf_d0), col = "blue", lty = 3, lwd = 3)
-                abline(v = mean(perf_d1), col = "red", lty = 3, lwd = 3)
-                
-                # add p-value + effect size values to bottom of plot
-                mtext(cex=0.8,line=4.5,side=1,text=paste("p =",signif(pvalue(perf_d0_d1_wilcox),6), ", ES =", signif(perf_d0_d1_es,2)))
+      # calculate kernel densities for voxelwise perfusion values
+      perf_d0_dens <- density(perf_d0, bw = 1)
+      perf_d1_dens <- density(perf_d1, bw = 1)
       
-              }
-}
-# Add a title to the figure with this subject's number and recanalization status
-title(paste(i, "- Recanalization status = ", recan_status[subjects==i]),outer=T, cex.main=2)
-# Add a "legend" showing the meaning of the blue + red curves
-mtext("Day 0", col = "blue", outer = T, side = 1, line = 2, adj=0.475)
-mtext("Day 1", col = "red", outer = T, side = 1, line = 2, adj=0.535)
-
-
-allrois_es <- as.data.frame(allrois_es) # save all rois for this subject
-rownames(allrois_es) <- allrois_names # give the rois names}
-assign(paste(i,"allrois_es", sep = "_"),allrois_es) # save as subject-specific variable
-
+        # PLOT DISTRIBUTION OF PERFUSION VALUES ON DAY 0 AND DAY 1 #
+      # create transparent fill colours
+      redtrans <- rgb(255, 0, 0, 75, maxColorValue=255)
+      bluetrans <- rgb(0, 0, 255, 75, maxColorValue=255)
+      
+      # plot kernel density
+      plot(perf_d1_dens, col = "red", xlim=(c(0,20)), ylim=c(0,max(perf_d0_dens$y, perf_d1_dens$y)), lwd = 3, xlab = "Seconds", main = roi_labels[text_filenames==x])
+      lines(perf_d0_dens, col = "blue", lwd = 3)
+      # fill in plot
+      polygon(perf_d1_dens, col = redtrans, border = "red")
+      polygon(perf_d0_dens, col = bluetrans, border = "blue")
+      
+      # add vertical lines showing D0 + D1 means
+      abline(v = mean(perf_d0), col = "blue", lty = 3, lwd = 3)
+      abline(v = mean(perf_d1), col = "red", lty = 3, lwd = 3)
+      
+      # add p-value + effect size values to bottom of plot
+      mtext(cex=0.8,line=4.5,side=1,text=paste("p =",signif(pvalue(perf_d0_d1_wilcox),6), ", ES =", signif(perf_d0_d1_es,2)))
+      
+    }
+  }
+  # Add a title with this subject's number and recanalization status
+  title(paste(i, "- Recanalization status = ", recan_status[subjects_all==i]),outer=T, cex.main=2)
+  # Add a "legend" showing the meaning of the blue + red curves
+  mtext("Day 0", col = "blue", outer = T, side = 1, line = 2, adj=0.475)
+  mtext("Day 1", col = "red", outer = T, side = 1, line = 2, adj=0.535)
+  
+  # save all ROIs for this subject in a data frame
+  allrois_es <- as.data.frame(allrois_es) 
+  # give the ROIs names
+  rownames(allrois_es) <- allrois_names 
+  # save as subject-specific variable
+  assign(paste(i,"allrois_es", sep = "_"),allrois_es) 
+  
 }
 ```
